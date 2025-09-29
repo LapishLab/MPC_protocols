@@ -1,0 +1,41 @@
+\DD_magtraining
+\editted by KGB 9/23/2023 to streamline
+\the way data and time is shown on the
+\screen and to remove redundant statements
+
+\Outputs
+^Hlight = 7
+^Pellet = 3
+
+\Variables
+\I (inter-trial interval)
+\K (inter-trial interval values)
+\R (reinforcer count)
+\T (total session time)
+
+LIST K = 15,25,35
+
+s.s.1,    \1" timer
+s1,
+#START: ---> s2
+s2,
+1": ADD T ---> s2
+
+s.s.2,    \Reinforcer delivery with variable ITI
+s1,
+#START: ---> s2
+s2,
+.01": ON^Hlight ---> s3
+s3,
+10": OFF^Hlight; ON^Pellet; ADD R ---> s4
+s4,
+.01": OFF^Pellet; RANDD I=K; SET I=I" ---> s5
+s5,
+I#T: IF R=20 [@Yes,@No]
+      @Yes: ---> STOPABORTFLUSH
+      @NO: ---> s2
+s.s.3,   \Show on-screen
+s1,
+#START: ---> s2
+s2,
+1": SHOW 1, Reinforcers, R, 2,ITI,I/100, 3,Session Timer,T ---> s2

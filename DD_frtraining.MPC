@@ -1,0 +1,156 @@
+\    DD_frtraining
+\    UPDATED: 9/28/23
+\    Pellet delivered on FR schedule with minor house light trial signaling
+
+
+\LEFT LEVER AND RIGHT LEVER ON FR1 SCHEDULE
+\BOTH LEVERS ARE AVAILABLE AT SAME TIME.
+\CURRENT USE IS FOR SYRINGE PUMP AND LICKOMETERS; CHANGE AS APPROPRIATE FOR PHOTOBEAM, DIPPER, HOPPER
+\KGB updated for Drexel inputs/outputs and for basic behavioral responding AKA removed MEA pulses
+\CMCA updated for reward magnitude decision making training
+
+\ INPUTS
+^LLEVER=1
+^RLEVER=3
+
+\  OUTPUTS
+^HLIGHT=7
+^Sync = 10
+^Pellet=3
+^LLEVERINOUT=1
+^RLEVERINOUT=2
+^Llight=4
+^Rlight=5
+
+
+\   *********************************************
+\        DESCRIPTION OF VARIABLES/ARRAYS
+\   *********************************************
+\    A=COUNTS LEFT LEVER REINFORCERS offered - MAX=30 PER LEVER, TOTAL 60
+\    B=TOTAL LEFT LEVER PRESS
+\    C=TIME OF EACH LEFT LEVER PRESS
+\    D=COUNTS RIGHT REINFORCERS DELIVERED (30 MAX)
+\    E=TIME OF EACH RIGHT LEVER REINFORCER
+\    F=TOTAL RIGHT LEVER PRESS
+\    G=TIME OF EACH RIGHT LEVER PRESS
+\    H= total reinforcer counter
+\    I=TIME OF EACH LEFT LEVER REINFORCER DELIVERY
+\    J=MAG ENTRIES TOTAL (LICKS HERE)
+\    K=TIME OF EACH MAG (LICK) ENTRY
+\    T=CLOCK ARRAY
+
+
+DIM C=1000
+DIM E=50
+DIM G=1000
+DIM I=50
+DIM K=2000
+DIM T=4
+
+
+\   *********************************************
+\            PROGRAM STARTS HERE
+\   Ends by time limit (90MIN in sec) or Max Rwds (30 PER LEVER)
+\   *********************************************
+S.S.1,
+S1,
+    #START:--->S2
+
+S2,
+        .01": Z1--->S3
+
+S3,
+    1": ADD T(0); IF T(0)>=2100 [@TRUE,@FALSE]
+        @TRUE:--->S4
+        @FALSE: IF H >= 30 [@TRUE,@FALSE]
+                @TRUE:--->S4
+                @FALSE:--->S3
+
+
+S4,
+
+       1":--->STOPABORTFLUSH
+
+
+\   *********************************************
+\            ON SCREEN INFORMATION
+\   *********************************************
+
+S.S.2,
+S1,
+    #Z1:--->S2
+
+S2,
+    1":SHOW 1,LLev,B, 2,LReinf,A, 3,RLev,F, 4,RReinf,D, 5,MINS,T(0)/60, --->S2
+
+
+\   *********************************************
+\        EVENT CLOCK
+\   *********************************************
+
+S.S.3,
+
+S1,
+    #Z1:--->S2
+
+S2,
+    0.01": Set T(1) = T(1) + 0.01 --->SX
+
+
+\   *********************************************
+\            LEFT LEVER SCHEDULE
+\   *********************************************
+
+S.S.4,
+
+S1,
+    #Z2: ---> S2
+
+S2,
+    #R^LLEVER:ADD A;ON^Pellet, ^Sync; OFF^RLEVERINOUT, ^Rlight; SET I(A)=T(1);ADD B; ADD H; SET C(B)=T(1) --->S3
+
+S3,
+
+20": OFF^LLEVERINOUT, ^Sync, ^Pellet, ^Llight; Z3 ---> S1
+
+
+
+
+\   *********************************************
+\        right lever RESPONSES RECORD
+\        LOGS TIME OF EACH RESPONSE IN SECONDS
+\   *********************************************
+S.S.6,
+
+S1,
+    #Z2:--->S2
+
+S2,
+    #R^RLEVER: ADD D; ON^Pellet, ^Sync; OFF^LLEVERINOUT, ^Llight; SET E(D)=T(1); ADD F; ADD H; SET G(F)=T(1) --->S3
+
+S3,
+
+20": OFF^RLEVERINOUT, ^Sync, ^Pellet, ^Rlight; Z3 ---> S1
+
+
+S.S.13,
+
+S1,
+
+#Z1:---> S2
+
+S2,
+
+.1": ON^HLIGHT --->S3
+
+S3,
+
+5": OFF^HLIGHT; ON^LLEVERINOUT, ^RLEVERINOUT, ^Llight, ^Rlight; Z2 ---> S4
+
+S4,
+
+#Z3: ---> S2
+
+
+
+
