@@ -1,0 +1,131 @@
+\ CPPish
+\ This program tracks the movement of the rats in the 2CAP chamber using the time of the beam breaks.
+\ One rat per chamber will be allowed to move around freely for 15 minutes. No stimulus or anything else will be used.
+
+
+\ **************************** Inputs ***************************
+\ IR beams are numbered from left sipper to right sipper. Because
+\ we are also recording licks, we will only record the three IR
+\ beams closest to each sipper (middle two are dropped). Note
+\ that on the Med Associates card, these inputs should be set to
+\ level.
+^IR_1  = 4
+^IR_2  = 3
+^IR_3  = 2
+^IR_4  = 6
+^IR_5 = 7
+^IR_6 = 8
+\ The licks are recorded for the matching sippers. Note that on
+\ the Med Associates card, these inputs should be set to toggle.
+^LeftLick = 1
+^RightLick = 5
+
+\ *************************** Variables *************************
+\ T = Time in Seconds
+\ J = List of Beam State Transition Counters
+\ P = List of Beam 1 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ Q = List of Beam 2 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ R = List of Beam 3 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ S = List of Beam 4 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ U = List of Beam 5 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ V = List of Beam 6 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+
+\ *********************** Preallocate Arrays ********************
+DIM J = 5
+DIM P = 5000
+DIM Q = 5000
+DIM R = 5000
+DIM S = 5000
+DIM U = 5000
+DIM V = 5000
+
+\ *********************** Run the Program ************************
+\ ***************************** Timer ****************************
+S.S.2,
+S1,
+#START: SET T=0 ---> S2
+
+S2,
+.05":SET T=T+.05; SHOW 1, Timer, T ---> S2
+
+\ ******************** Beam 1 Break Recording ********************
+S.S.21,
+S1,
+    #START: SET P(0) = -1; SET P(1) = -1; SET J(0) = 1 ---> S2
+S2,
+    #R^IR_1: IF T <= (P(J(0)) + 0.075) [@True, @False]
+        @True: SET P(J(0)) = T ---> S3
+        @False: SET P(J(0) + 1) = T; SET J(0) = J(0) + 1; SHOW 2, B1 Break, T ---> S3
+S3,
+    0.01": ---> S2
+
+
+\ ******************** Beam 2 Break Recording ********************
+S.S.22,
+S1,
+    #START: SET Q(0) = -1; SET Q(1) = -1; SET J(1) = 1 ---> S2
+S2,
+    #R^IR_2: IF T <= (Q(J(1)) + 0.075) [@True, @False]
+        @True: SET Q(J(1)) = T ---> S3
+        @False: SET Q(J(1) + 1) = T; SET J(1) = J(1) + 1; SHOW 3, B2 Break, T ---> S3
+S3,
+    0.01": ---> S2
+
+
+\ ******************** Beam 3 Break Recording ********************
+S.S.23,
+S1,
+    #START: SET R(0) = -1; SET R(1) = -1; SET J(2) = 1 ---> S2
+S2,
+    #R^IR_3: IF T <= (R(J(2)) + 0.075) [@True, @False]
+        @True: SET R(J(2)) = T ---> S3
+        @False: SET R(J(2) + 1) = T; SET J(2) = J(2) + 1; SHOW 4, B3 Break, T ---> S3
+S3,
+    0.01": ---> S2
+
+
+\ ******************** Beam 4 Break Recording ********************
+S.S.24,
+S1,
+    #START: SET S(0) = -1; SET S(1) = -1; SET J(3) = 1 ---> S2
+S2,
+    #R^IR_4: IF T <= (S(J(3)) + 0.075) [@True, @False]
+        @True: SET S(J(3)) = T ---> S3
+        @False: SET S(J(3) + 1) = T; SET J(3) = J(3) + 1; SHOW 5, B4 Break, T ---> S3
+S3,
+    0.01": ---> S2
+
+
+
+\ ******************** Beam 5 Break Recording ********************
+S.S.25,
+S1,
+    #START: SET U(0) = -1; SET U(1) = -1; SET J(4) = 1 ---> S2
+S2,
+    #R^IR_5: IF T <= (U(J(4)) + 0.075) [@True, @False]
+        @True: SET U(J(4)) = T ---> S3
+        @False: SET U(J(4) + 1) = T; SET J(4) = J(4) + 1; SHOW 6, B5 Break, T ---> S3
+S3,
+    0.01": ---> S2
+
+
+
+\ ******************** Beam 6 Break Recording ********************
+S.S.26,
+S1,
+    #START: SET V(0) = -1; SET V(1) = -1; SET J(5) = 1 ---> S2
+S2,
+    #R^IR_6: IF T <= (V(J(5)) + 0.075) [@True, @False]
+        @True: SET V(J(5)) = T ---> S3
+        @False: SET V(J(5) + 1) = T; SET J(5) = J(5) + 1; SHOW 7, B6 Break, T ---> S3
+S3,
+    0.01": ---> S2
+
+\ ************************* Shut Down *************************
+S.S.9,
+S1,
+    #START: ---> S2
+S2,
+    0.1": IF T > 900 [@True, @False]
+        @True: ---> STOPABORTFLUSH
+        @False:--->S2

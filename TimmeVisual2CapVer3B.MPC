@@ -1,0 +1,432 @@
+\ ****************************************************************
+\ ************************** Visual 2Cap **************************
+\ ****************************************************************
+\
+\ This program runs a visual version of the 2Cap task. Stimulus
+\ lights above sippers cue the animal to the side of the chamber
+\ in which a sipper will enter to provide liquid access. See below
+\ for the number of trials and intertrial intervals.
+
+\ **************************** Versions ***************************
+\ Version 1 is meant to have identical timing (or nearly identical
+\ timing) and randomization structure to David's original visual
+\ 2Cap task. This version takes a little over 70 minutes to run.
+\
+\ Version 2 added a random CS- during the intertrial intervals. Also,
+\ the session starts with the first intertrial interval to ensure
+\ all intertrial intervals run.
+\
+\ Version 3 altered the timing through the task to increase the
+\ number of trials. The number of trials was increased to 50 and
+\ the intertrial intervals were decreased slightly. This version
+\ takes 63.5 minutes to run.
+
+\ **************************** A/B ***************************
+\ A: Solid light CS+ on access side. Blinking light CS- on both sides.
+\ B: Blinking light CS+ on access side. Solid light CS- on both sides.
+
+\ **************************** Outputs ***************************
+^LeftStimLight = 1                 \ The output number for the left stimulus light
+^RightStimLight = 2                \ The output number for the right stimulus light
+^LeftSipper = 5                    \ The output number for the left sipper when looking at the front of the chamber
+^RightSipper = 9                   \ The output number for the right sipper when looking at the front of the chamber
+^PiSync = 7                        \ The output number for the sync signal to the raspberry Pi
+
+\ **************************** Inputs ***************************
+\ IR beams are numbered from left sipper to right sipper. Because
+\ we are also recording licks, we will only record the three IR
+\ beams closest to each sipper (middle two are dropped). Note
+\ that on the Med Associates card, these inputs should be set to
+\ level.
+^IR_1  = 4
+^IR_2  = 3
+^IR_3  = 2
+^IR_4  = 6
+^IR_5 = 7
+^IR_6 = 8
+\ The licks are recorded for the matching sippers. Note that on
+\ the Med Associates card, these inputs should be set to toggle.
+^LeftLick = 1
+^RightLick = 5
+
+\ *************************** Variables *************************
+\ T = Time in Seconds
+\ A = Number of Completed Trials
+\ D = List of Allowed Trial Types (1: left, 2: right)
+\ X = Trial Type Number
+\ M = Output Event (see table below)
+\ N = Output Event Time in Seconds
+\ L = Output Event Counter
+\ Z = Intertrial Interval Time in Seconds (1 Trial)
+\ I = List of Allowed Intertrial Interval Time in Seconds
+\ J = List of Beam State Transition Counters
+\ P = List of Beam 1 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ Q = List of Beam 2 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ R = List of Beam 3 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ S = List of Beam 4 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ U = List of Beam 5 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ V = List of Beam 6 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ E = List of Left Lick Times in Seconds
+\ F = List of Right Lick Times in Seconds
+\ G = Counters of Left (G(0)) and Right (G(1)) Licks
+\ C = CS- Likelihood
+\ K = CS- Status
+\ W = Hold status of CS- (W = 1 implies no CS- allowed)
+\ O = Count of CS- Opportunities
+
+\ ******************* Output Event Definitions ******************
+\ 1: Left Stim Light On
+\ 2: Right Stim Light On
+\ 3: Left Stim Light Off
+\ 4: Right Stim Light Off
+\ 5: Left Sipper Into the Chamber
+\ 6: Right Sipper Into the Chamber
+\ 7: Left Sipper Out of the Chamber
+\ 8: Right Sipper Out of the Chamber
+\ 9: Left Stim Light Blinking Start
+\ 10: Right Stim Light Blinking Start
+\ 11: Left Stim Light Blinking Stop
+\ 12: Right Stim Light Blinking Stop
+
+\ **************************** Z-Pulses *************************
+\ Z1: Starts the timer
+\ Z2: Starts the task sequence
+\ Z3: Starts the CS- sequence
+\ Z4: Starts the left side solid light
+\ Z5: Starts the right side solid light
+\ Z6: Starts the left side blinking light
+\ Z7: Starts the right side blinking light
+
+
+\ ************************* Trial Types *************************
+\ This list determines the type of the trials. It will be
+\ randomized within Med Associates. The list is randomized and
+\ run to completion, so the number of possible trials of the same
+\ type in a row can be controlled by controlling the number of
+\ times a given trial type appears in D.
+\ (1: left, 2: right)
+LIST D = 1, 1, 2, 2
+
+\ ********************** Intertrial Intervals *******************
+\ This list determines the intertrial intervals. It will be
+\ randomized within Med Associates. The list is randomized and
+\ run to completion, so the number of possible intervals of the same
+\ length in a row can be controlled by controlling the number of
+\ times a given length appears in I. These values should be
+\ divisible by the CS+/- time.
+LIST I = 20", 28", 36", 44", 56", 68", 96", 120", 20", 28", 36", 44", 56", 68", 96", 120", 20", 28", 36", 44", 56", 68", 96", 120", 20", 28", 36", 44", 56", 68", 96", 120", 20", 28", 36", 44", 56", 68", 96", 120", 20", 28", 36", 44", 56", 68", 96", 120"
+
+\ ********************** CS- Likelihood *******************
+\ This list determines the likelihood to run a CS-. Each time a CS- could
+\ run, if 1 is returned from this list, the CS- will run. Otherwise, it will
+\ not run. The likelihood to run can be controlled by controlling the relative
+\ number of 0s and 1s. Currently, it has 8 1s and 109 0s. We desire 48 CS- and
+\ there are 702 possible CS- times given the total time in I. So, C will be
+\ run 6 times to completion.
+LIST C = 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+
+\ *********************** Preallocate Arrays ********************
+DIM M = 1000
+DIM N = 1000
+DIM J = 5
+DIM P = 5000
+DIM Q = 5000
+DIM R = 5000
+DIM S = 5000
+DIM U = 5000
+DIM V = 5000
+DIM E = 5000
+DIM F = 5000
+DIM G = 1
+
+
+\ ******************* How to Change Parameters ******************
+\ --- Recording Resolution
+\ The recording resolution is set in the timer state set
+\ (S.S.2.). To adjust the resolution, change the delay and the
+\ added factor in S3 making sure they are identical. Note that
+\ the absolute resolution of the system is 1 ms at best with a
+\ more realistic limit at 10 ms. Furthermore, changes to the
+\ resolution necessitate changes in the beam break sections to
+\ account for adjacent time bins.
+\
+\ --- Number of Trials
+\ The number of trials is controlled by S9 in the main trial
+\ state set (S.S.3.).
+\
+\ --- Trial Order
+\ The trial type order is set by variable D.
+\
+\ --- Change the background recording time
+\ The background recording time is set as the delay in S3 of the
+\ main trial state set (S.S.3.).
+\
+\ --- Change the prestimulus time
+\ The prestimulus delay period is set as the delay in S4 of the
+\ main trial state set (S.S.3.).
+\
+\ --- Change the cue duration
+\ The cue durations are set as the delays in S5 of the main trial
+\ state set (S.S.3.).
+\
+\ --- Change the access time
+\ The access time is set as the sum of the delay in S7 and S8 of the
+\ main trial state set (S.S.3.)
+\
+\ --- Change the post access time
+\ The post access delay time is set as the delay in S9 of the
+\ main trial state set (S.S.3.).
+\
+\ --- Change the recording time at the end of the experiment
+\ The recording time at the end of the experiment is set as the
+\ delay in S11 of the main trial state set (S.S.3.).
+\
+
+
+
+
+\ *********************** Run the Program ************************
+\ ****************************************************************
+
+
+\ ************************* Start Up *************************
+S.S.1,
+S1,
+    1": Z1; Z2 ---> S2
+S2,
+    300': ---> SX
+
+
+\ ***************************** Timer ****************************
+S.S.2,
+S1,
+    #Z1: --->S2
+S2,
+    #START: SET T=0 ---> S3
+S3,
+    .05":SET T=T+.05 ---> S3
+
+
+\ ********************** Main Trial Sequence *********************
+S.S.3,
+
+\ Waiting for start signal from the start up set
+S1,
+    #Z2: SET A = 0; SET L = 0; SET W = 1; SET O = 0 ---> S2
+
+\ Start up and display that the program is running
+S2,
+    #START: SHOW 2, Running, 1 ---> S3
+
+\ Wait 1 minute for background, then randomly select an intertrial interval to start the session, then open up CS-
+S3,
+    1': RANDD Z = I; SHOW 3, TrialInterval, Z; SET W = 0; Z3 ---> S4
+
+\ Run the intertrial interval and shut down CS-
+S4,
+    Z#T: ON ^PiSync; SET W = 1 ---> S5
+
+\ Wait 3 seconds for prestimulus background, then run the correct CS+
+S5,
+    3": OFF ^PiSync; RANDD X = D; SHOW 2, TrialType, X; IF X = 1 [@True, @False]
+        @True: Z6 ---> S6
+        @False: Z7 ---> S6
+
+\ Wait 5 seconds (the CS+ plays for 4 seconds), then insert both sippers
+S6,
+    5": ON ^LeftSipper; SET M(L) = 5; SET N(L) = T; ADD L; ON ^RightSipper; SET M(L) = 6; SET N(L) = T; ADD L ---> S7
+
+\ Wait 0.5 seconds, then withdraw the incorrect sipper
+S7,
+    0.5": IF X = 1 [@True, @False]
+        @True: OFF ^RightSipper; SET M(L) = 8; SET N(L) = T; ADD L ---> S8
+        @False: OFF ^LeftSipper; SET M(L) = 7; SET N(L) = T; ADD L ---> S8
+
+\ Wait for the access period, then withdraw the correct sipper
+S8,
+    7.5": IF X = 1 [@True, @False]
+        @True: OFF ^LeftSipper; SET M(L) = 7; SET N(L) = T; ADD L ---> S9
+        @False: OFF ^RightSipper; SET M(L) = 8; SET N(L) = T; ADD L ---> S9
+
+\ Wait for 3 seconds, then add to trial count, then display trial number. If we have enough trials, go to end. Otherwise, select an intertrial interval and open up CS-.
+S9,
+    3": ADD A; SHOW 1, TrialsCompleted, A; IF A < 48 [@True, @False]
+        @True: RANDD Z = I; SHOW 3, TrialInterval, Z; SET W = 0; Z3 ---> S4
+        @False: ---> S10
+
+\ Wait 1 minute to get data at the end and then stop the session.
+S10,
+    30": ---> STOPABORTFLUSH
+
+
+
+
+\ ****************** CS- Loop ******************
+S.S.4,
+\ Start up CS- Loop, determine if a CS- should be run, if it should, start the CS-.
+S1,
+    #Z3: RANDD K = C; SHOW 7, CS-, K; ADD O; IF K = 1 [@True, @False]
+        @True: Z4; Z5 ---> S2
+        @False: ---> S2
+
+\ If the main trial is still in the intertrial interval, determine if the CS- should be run, if it should, start CS-. If not, go back to CS- loop start to wait for the next intertrial interval.
+S2,
+    4": IF W = 0 [@True, @False]
+        @True: RANDD K = C; SHOW 7, CS-, K; ADD O; IF K = 1 [@True, @False]
+            @True: Z4; Z5 ---> S2
+            @False: ---> S2
+        @False: ---> S1
+
+
+
+
+
+\ ****************** Left Solid Light (4 sec) ******************
+S.S.5,
+S1,
+    #Z4: ON ^LeftStimLight; SET M(L) = 1; SET N(L) = T; ADD L ---> S2
+S2,
+    4": OFF ^LeftStimLight; SET M(L) = 3; SET N(L) = T; ADD L ---> S1
+
+\ ****************** Right Solid Light (4 sec) ******************
+S.S.6,
+S1,
+    #Z5: ON ^RightStimLight; SET M(L) = 2; SET N(L) = T; ADD L ---> S2
+S2,
+    4": OFF ^RightStimLight; SET M(L) = 4; SET N(L) = T; ADD L ---> S1
+
+
+\ ****************** Left Blinking Light (4 sec) ******************
+S.S.7,
+S1,
+    #Z6: ON ^LeftStimLight; SET M(L) = 9; SET N(L) = T; ADD L ---> S2
+S2,
+    0.25": OFF ^LeftStimLight ---> S3
+S3,
+    0.75": ON ^LeftStimLight ---> S4
+S4,
+    0.25": OFF ^LeftStimLight ---> S5
+S5,
+    0.75": ON ^LeftStimLight ---> S6
+S6,
+    0.25": OFF ^LeftStimLight ---> S7
+S7,
+    0.75": ON ^LeftStimLight ---> S8
+S8,
+    0.25": OFF ^LeftStimLight ---> S9
+S9,
+    0.75": SET M(L) = 11; SET N(L) = T; ADD L ---> S1
+
+\ ****************** Right Blinking Light (4 sec) ******************
+S.S.8,
+S1,
+    #Z7: ON ^RightStimLight; SET M(L) = 10; SET N(L) = T; ADD L ---> S2
+S2,
+    0.25": OFF ^RightStimLight ---> S3
+S3,
+    0.75": ON ^RightStimLight ---> S4
+S4,
+    0.25": OFF ^RightStimLight ---> S5
+S5,
+    0.75": ON ^RightStimLight ---> S6
+S6,
+    0.25": OFF ^RightStimLight ---> S7
+S7,
+    0.75": ON ^RightStimLight ---> S8
+S8,
+    0.25": OFF ^RightStimLight ---> S9
+S9,
+    0.75": SET M(L) = 12; SET N(L) = T; ADD L ---> S1
+
+
+
+\ ****************** Left Sipper Lick Recording ******************
+S.S.11,
+S1,
+    #START: SET G(0) = 0 ---> S2
+S2,
+    #R^LeftLick: SET E(G(0)) = T; SET G(0) = G(0) + 1; SHOW 4, LeftLicks, G(0) ---> SX
+
+
+\ ****************** Right Sipper Lick Recording *****************
+S.S.12,
+S1,
+    #START: SET G(1) = 0 ---> S2
+S2,
+    #R^RightLick: SET F(G(1)) = T; SET G(1) = G(1) + 1; SHOW 5, RightLicks, G(1) ---> SX
+
+
+\ ******************** Beam 1 Break Recording ********************
+S.S.21,
+S1,
+    #START: SET P(0) = -1; SET P(1) = -1; SET J(0) = 1 ---> S2
+S2,
+    #R^IR_1: IF T <= (P(J(0)) + 0.075) [@True, @False]
+        @True: SET P(J(0)) = T ---> S3
+        @False: SET P(J(0) + 1) = T; SET P(J(0) + 2) = T; SET J(0) = J(0) + 2 ---> S3
+S3,
+    0.01": ---> S2
+
+
+\ ******************** Beam 2 Break Recording ********************
+S.S.22,
+S1,
+    #START: SET Q(0) = -1; SET Q(1) = -1; SET J(1) = 1 ---> S2
+S2,
+    #R^IR_2: IF T <= (Q(J(1)) + 0.075) [@True, @False]
+        @True: SET Q(J(1)) = T ---> S3
+        @False: SET Q(J(1) + 1) = T; SET Q(J(1) + 2) = T; SET J(1) = J(1) + 2 ---> S3
+S3,
+    0.01": ---> S2
+
+
+\ ******************** Beam 3 Break Recording ********************
+S.S.23,
+S1,
+    #START: SET R(0) = -1; SET R(1) = -1; SET J(2) = 1 ---> S2
+S2,
+    #R^IR_3: IF T <= (R(J(2)) + 0.075) [@True, @False]
+        @True: SET R(J(2)) = T ---> S3
+        @False: SET R(J(2) + 1) = T; SET R(J(2) + 2) = T; SET J(2) = J(2) + 2 ---> S3
+S3,
+    0.01": ---> S2
+
+
+\ ******************** Beam 4 Break Recording ********************
+S.S.24,
+S1,
+    #START: SET S(0) = -1; SET S(1) = -1; SET J(3) = 1 ---> S2
+S2,
+    #R^IR_4: IF T <= (S(J(3)) + 0.075) [@True, @False]
+        @True: SET S(J(3)) = T ---> S3
+        @False: SET S(J(3) + 1) = T; SET S(J(3) + 2) = T; SET J(3) = J(3) + 2 ---> S3
+S3,
+    0.01": ---> S2
+
+
+
+\ ******************** Beam 5 Break Recording ********************
+S.S.25,
+S1,
+    #START: SET U(0) = -1; SET U(1) = -1; SET J(4) = 1 ---> S2
+S2,
+    #R^IR_5: IF T <= (U(J(4)) + 0.075) [@True, @False]
+        @True: SET U(J(4)) = T ---> S3
+        @False: SET U(J(4) + 1) = T; SET U(J(4) + 2) = T; SET J(4) = J(4) + 2 ---> S3
+S3,
+    0.01": ---> S2
+
+
+
+\ ******************** Beam 6 Break Recording ********************
+S.S.26,
+S1,
+    #START: SET V(0) = -1; SET V(1) = -1; SET J(5) = 1 ---> S2
+S2,
+    #R^IR_6: IF T <= (V(J(5)) + 0.075) [@True, @False]
+        @True: SET V(J(5)) = T ---> S3
+        @False: SET V(J(5) + 1) = T; SET V(J(5) + 2) = T; SET J(5) = J(5) + 2 ---> S3
+S3,
+    0.01": ---> S2
+

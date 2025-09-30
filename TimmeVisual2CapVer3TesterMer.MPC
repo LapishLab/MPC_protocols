@@ -1,0 +1,229 @@
+\ ****************************************************************
+\ ****************** Visual 2Cap Chamber Test *********************
+\ ****************************************************************
+\
+\ This program runs a chamber test for the audio version of the
+\ 2Cap. It should be run at the start of every session after new
+\ sippers are put on.
+
+\ **************************** Outputs ***************************
+^LeftStimLight = 1                \ The output number for the left stimulus light
+^RightStimLight = 2                \ The output number for the right stimulus light
+^LeftSipper = 5                \ The output number for the left sipper when looking at the front of the chamber
+^RightSipper = 9             \ The output number for the right sipper when looking at the front of the chamber
+^ToneWhite = 12                     \ The multiple tone generator white wire output number
+^ToneBlue = 13                     \ The multiple tone generator blue wire output number
+^ToneGreen = 14                     \ The multiple tone generator green wire output number
+^ToneOrange = 15                 \ The multiple tone generator orange wire output number
+
+\ ********** Multiple Tone Generator Frequency Recipes ***********
+\ The multiple tone generator creates different frequencies by
+\ turning on different combinations of output wires. The key below
+\ shows the combinations of outputs that must be turned on to
+\ create different frequencies.
+\ 1 kHz: ^ToneWhite
+\ 1.5 kHz: ^ToneBlue
+\ 2 kHz: ^ToneBlue, ^ToneWhite
+\ 2.5 kHz: ^ToneGreen
+\ 3 kHz: ^ToneGreen, ^ToneWhite
+\ 3.5 kHz: ^ToneGreen, ^ToneBlue
+\ 4 kHz: ^ToneGreen, ^ToneBlue, ^ToneWhite
+\ 5 kHz: ^ToneOrange
+\ 6 kHz: ^ToneOrange, ^ToneWhite
+\ 8 kHz: ^ToneOrange, ^ToneBlue
+\ 9 kHz: ^ToneOrange, ^ToneWhite, ^ToneBlue
+\ 10 kHz: ^ToneOrange, ^ToneGreen
+\ 12 kHz: ^ToneOrange, ^ToneGreen, ^ToneWhite
+\ 15 kHz: ^ToneOrange, ^ToneGreen, ^ToneBlue
+\ 20 kHz: ^ToneOrange, ^ToneGreen, ^ToneWhite, ^ToneBlue
+
+\ **************************** Inputs ***************************
+\ IR beams are numbered from left sipper to right sipper. Because
+\ we are also recording licks, we will only record the three IR
+\ beams closest to each sipper (middle two are dropped). Note
+\ that on the Med Associates card, these inputs should be set to
+\ level.
+^IR_1  = 4
+^IR_2  = 3
+^IR_3  = 2
+^IR_4  = 6
+^IR_5 = 7
+^IR_6 = 8
+\ The licks are recorded for the matching sippers. Note that on
+\ the Med Associates card, these inputs should be set to toggle.
+^LeftLick = 1
+^RightLick = 5
+
+\ *************************** Variables *************************
+\ A = Record of whether the left sipper has been tripped (0 = No,
+\     1 = Yes).
+\ B = Record of whether the right sipper has been tripped (0 = No,
+\     1 = Yes).
+\ C = Record of whether the 1 beam has been broken (0 = No, 1 = Yes).
+\ D = Record of whether the 2 beam has been broken (0 = No, 1 = Yes).
+\ E = Record of whether the 3 beam has been broken (0 = No, 1 = Yes).
+\ F = Record of whether the 4 beam has been broken (0 = No, 1 = Yes).
+\ G = Record of whether the 5 beam has been broken (0 = No, 1 = Yes).
+\ H = Record of whether the 6 beam has been broken (0 = No, 1 = Yes).
+\ I = Record of whether all the beams have been broken (0 = No, 1 = Yes).
+
+
+
+
+
+
+
+\ *********************** Run the Program ************************
+\ ****************************************************************
+
+
+\ ************************* Start Up *************************
+S.S.1,
+S1,
+    #START: ON ^LeftStimLight; ON ^RightStimLight; ON ^RightSipper; ON ^LeftSipper ---> S2
+S2,
+    300': ---> SX
+
+
+
+\ ****************** Left Sipper Lick Check ******************
+S.S.2,
+S1,
+    #START: SET A = 0 ---> S2
+S2,
+    #R^LeftLick: SET A = 1; SHOW 4, LeftLickCheck, A ---> S3
+S3,
+    0.1": OFF ^LeftStimLight; OFF ^LeftSipper; ON ^ToneOrange ---> S4
+S4,
+    0.5": OFF ^ToneOrange ---> S5
+S5,
+    300': ---> SX
+
+
+\ ****************** Right Sipper Lick Check *****************
+S.S.3,
+S1,
+    #START: SET B = 0 ---> S2
+S2,
+    #R^RightLick: SET B = 1; SHOW 5, RightLickCheck, B ---> S3
+S3,
+    0.1": OFF ^RightStimLight; OFF ^RightSipper; ON ^ToneOrange ---> S4
+S4,
+    0.5": OFF ^ToneOrange ---> S5
+S5,
+    300': ---> SX
+
+
+
+\ ******************** Beam 1 Break Recording ********************
+S.S.21,
+S1,
+    #START: SET C = 0 ---> S2
+S2,
+    #R^IR_1: SET C = 1 ---> S3
+S3,
+    300': ---> SX
+
+
+\ ******************** Beam 2 Break Recording ********************
+S.S.22,
+S1,
+    #START: SET D = 0 ---> S2
+S2,
+    #R^IR_2: SET D = 1 ---> S3
+S3,
+    300': ---> SX
+
+
+\ ******************** Beam 3 Break Recording ********************
+S.S.23,
+S1,
+    #START: SET E = 0 ---> S2
+S2,
+    #R^IR_3: SET E = 1 ---> S3
+S3,
+    300': ---> SX
+
+
+\ ******************** Beam 4 Break Recording ********************
+S.S.24,
+S1,
+    #START: SET F = 0 ---> S2
+S2,
+    #R^IR_4: SET F = 1 ---> S3
+S3,
+    300': ---> SX
+
+
+
+\ ******************** Beam 5 Break Recording ********************
+S.S.25,
+S1,
+    #START: SET G = 0 ---> S2
+S2,
+    #R^IR_5: SET G = 1 ---> S3
+S3,
+    300': ---> SX
+
+
+
+\ ******************** Beam 6 Break Recording ********************
+S.S.26,
+S1,
+    #START: SET H = 0 ---> S2
+S2,
+    #R^IR_6: SET H = 1 ---> S3
+S3,
+    300': ---> SX
+
+
+\ ************************* Shut Down Beam Breaks ***************
+S.S.4,
+S1,
+    #START: ---> S2
+S2,
+    0.2": IF C = 1 [@True, @False]
+        @True: IF D = 1 [@True, @False]
+            @True: IF E = 1 [@True, @False]
+                @True: IF F = 1 [@True, @False]
+                    @True: IF G = 1 [@True, @False]
+                        @True: IF H = 1 [@True, @False]
+                            @True: SET I = 1 ---> S3
+                            @False: ---> S2
+                        @False: ---> S2
+                    @False: ---> S2
+                @False: ---> S2
+            @False: ---> S2
+        @False: ---> S2
+S3,
+    0.2": ON ^ToneGreen ---> S4
+S4,
+    2": OFF ^ToneGreen ---> S5
+S5,
+    300': ---> SX
+
+
+
+
+\ ************************* Shut Down *************************
+S.S.5,
+S1,
+    #START: ---> S2
+S2,
+    0.2": IF A = 1 [@True, @False]
+        @True: IF B = 1 [@True, @False]
+            @True: IF I = 1 [@True, @False]
+                @True: ---> S3
+                @False: ---> S2
+            @False: ---> S2
+        @False: ---> S2
+S3,
+    3": ---> STOPKILL
+
+
+
+
+
+
+
+

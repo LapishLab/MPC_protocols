@@ -1,0 +1,263 @@
+\ ****************************************************************
+\ ***************** Visual 2Cap Animal Acclimation ****************
+\ ****************************************************************
+\
+\ This program acclimates the animal to the chamber by
+\ waiting for the animal to lick 15 times from both sides of the
+\ chamber.
+
+
+\ **************************** Outputs ***************************
+^LeftStimLight = 1                \ The output number for the left stimulus light
+^RightStimLight = 2                \ The output number for the right stimulus light
+^LeftSipper = 5                \ The output number for the left sipper when looking at the front of the chamber
+^RightSipper = 9             \ The output number for the right sipper when looking at the front of the chamber
+
+
+
+\ **************************** Inputs ***************************
+\ IR beams are numbered from left sipper to right sipper. Because
+\ we are also recording licks, we will only record the three IR
+\ beams closest to each sipper (middle two are dropped). Note
+\ that on the Med Associates card, these inputs should be set to
+\ level.
+^IR_1  = 4
+^IR_2  = 3
+^IR_3  = 2
+^IR_4  = 6
+^IR_5 = 7
+^IR_6 = 8
+\ The licks are recorded for the matching sippers. Note that on
+\ the Med Associates card, these inputs should be set to toggle.
+^LeftLick = 1
+^RightLick = 5
+
+\ *************************** Variables *************************
+\ A = Number of left licks.
+\ B = Number of right licks.
+\ C = Record of whether the left sipper has been tripped enough
+\     times (0 = No, 1 = Yes).
+\ D = Record of whether the right sipper has been tripped enough
+\     times (0 = No, 1 = Yes).
+\ E = List of left lick times in seconds.
+\ F = List of right lick times in seconds.
+\ J = List of Beam State Transition Counters
+\ P = List of Beam 1 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ Q = List of Beam 2 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ R = List of Beam 3 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ S = List of Beam 4 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ U = List of Beam 5 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ V = List of Beam 6 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
+\ T = Time in Seconds
+
+\ **************************** Z-Pulses *************************
+\ Z1: Starts the timer
+
+\ *********************** Preallocate Arrays ********************
+DIM E = 30
+DIM F = 30
+DIM J = 5
+DIM P = 5000
+DIM Q = 5000
+DIM R = 5000
+DIM S = 5000
+DIM U = 5000
+DIM V = 5000
+
+
+
+
+\ *********************** Run the Program ************************
+\ ****************************************************************
+
+
+\ ************************* Start Up *************************
+S.S.1,
+S1,
+    #START: ON ^LeftStimLight; ON ^RightStimLight; ON ^RightSipper; ON ^LeftSipper; Z1 ---> S2
+S2,
+    300': ---> SX
+
+
+\ ***************************** Timer ****************************
+S.S.10,
+S1,
+    #Z1: SET T=0 --->S2
+S2,
+    .05": SET T=T+.05 ---> S2
+
+
+
+\ ****************** Left Sipper Recording ******************
+S.S.2,
+S1,
+    #START: SET A = 0 ---> S2
+S2,
+    #R^LeftLick: SET E(A) = T; SET A = A + 1; SHOW 4, LeftLicks, A ---> SX
+
+
+\ ****************** Right Sipper Recording *****************
+S.S.3,
+S1,
+    #START: SET B = 0 ---> S2
+S2,
+    #R^RightLick: SET F(B) = T; SET B = B + 1; SHOW 5, RightLicks, B ---> SX
+
+
+
+\ ****************** Left Sipper Counter ******************
+S.S.4,
+S1,
+    #START: SET C = 0 ---> S2
+S2,
+    0.1": IF A > 14 [@True, @False]
+        @True: SET C = 1; OFF ^LeftSipper ---> S3
+        @False: ---> S2
+S3,
+    300': ---> SX
+
+
+\ ****************** Right Sipper Counter ******************
+S.S.5,
+S1,
+    #START: SET D = 0 ---> S2
+S2,
+    0.1": IF B > 14 [@True, @False]
+        @True: SET D = 1; OFF ^RightSipper ---> S3
+        @False: ---> S2
+S3,
+    300': ---> SX
+
+
+
+\ ****************** Left Sipper Periodic In/Out ******************
+S.S.6,
+S1,
+    #START: ---> S2
+S2,
+    20": OFF ^LeftSipper ---> S3
+S3,
+    2": IF C = 0 [@True, @False]
+        @True: ON ^LeftSipper---> S2
+        @False: ---> S4
+S4,
+    300': ---> SX
+
+
+\ ****************** Right Sipper Periodic In/Out ******************
+S.S.7,
+S1,
+    #START: ---> S2
+S2,
+    20": OFF ^RightSipper ---> S3
+S3,
+    2": IF D = 0 [@True, @False]
+        @True: ON ^RightSipper---> S2
+        @False: ---> S4
+S4,
+    300': ---> SX
+
+
+
+\ ************************* Shut Down *************************
+S.S.8,
+S1,
+    #START: ---> S2
+S2,
+    1": ---> S3
+S3,
+    0.2": IF T > 300 [@True, @False]
+        @True: ---> S4
+        @False: IF C = 1 [@True, @False]
+            @True: IF D = 1 [@True, @False]
+                @True: ---> S4
+                @False: ---> S2
+            @False: ---> S2
+S4,
+    0.2": ---> STOPABORTFLUSH
+
+
+
+
+\ ******************** Beam 1 Break Recording ********************
+S.S.21,
+S1,
+    #START: SET P(0) = -1; SET P(1) = -1; SET J(0) = 1 ---> S2
+S2,
+    #R^IR_1: IF T <= (P(J(0)) + 0.075) [@True, @False]
+        @True: SET P(J(0)) = T ---> S3
+        @False: SET P(J(0) + 1) = T; SET P(J(0) + 2) = T; SET J(0) = J(0) + 2 ---> S3
+S3,
+    0.01": SHOW 6, J, J(0); SHOW 7, P(J(0) - 2), P(J(0) - 2); SHOW 8, P(J(0) - 1), P(J(0) - 1); SHOW 9, P(J(0)), P(J(0)) ---> S2
+
+
+\ ******************** Beam 2 Break Recording ********************
+S.S.22,
+S1,
+    #START: SET Q(0) = -1; SET Q(1) = -1; SET J(1) = 1 ---> S2
+S2,
+    #R^IR_2: IF T <= (Q(J(1)) + 0.075) [@True, @False]
+        @True: SET Q(J(1)) = T ---> S3
+        @False: SET Q(J(1) + 1) = T; SET Q(J(1) + 2) = T; SET J(1) = J(1) + 2 ---> S3
+S3,
+    0.01": ---> S2
+
+
+\ ******************** Beam 3 Break Recording ********************
+S.S.23,
+S1,
+    #START: SET R(0) = -1; SET R(1) = -1; SET J(2) = 1 ---> S2
+S2,
+    #R^IR_3: IF T <= (R(J(2)) + 0.075) [@True, @False]
+        @True: SET R(J(2)) = T ---> S3
+        @False: SET R(J(2) + 1) = T; SET R(J(2) + 2) = T; SET J(2) = J(2) + 2 ---> S3
+S3,
+    0.01": ---> S2
+
+
+\ ******************** Beam 4 Break Recording ********************
+S.S.24,
+S1,
+    #START: SET S(0) = -1; SET S(1) = -1; SET J(3) = 1 ---> S2
+S2,
+    #R^IR_4: IF T <= (S(J(3)) + 0.075) [@True, @False]
+        @True: SET S(J(3)) = T ---> S3
+        @False: SET S(J(3) + 1) = T; SET S(J(3) + 2) = T; SET J(3) = J(3) + 2 ---> S3
+S3,
+    0.01": ---> S2
+
+
+
+\ ******************** Beam 5 Break Recording ********************
+S.S.25,
+S1,
+    #START: SET U(0) = -1; SET U(1) = -1; SET J(4) = 1 ---> S2
+S2,
+    #R^IR_5: IF T <= (U(J(4)) + 0.075) [@True, @False]
+        @True: SET U(J(4)) = T ---> S3
+        @False: SET U(J(4) + 1) = T; SET U(J(4) + 2) = T; SET J(4) = J(4) + 2 ---> S3
+S3,
+    0.01": ---> S2
+
+
+
+\ ******************** Beam 6 Break Recording ********************
+S.S.26,
+S1,
+    #START: SET V(0) = -1; SET V(1) = -1; SET J(5) = 1 ---> S2
+S2,
+    #R^IR_6: IF T <= (V(J(5)) + 0.075) [@True, @False]
+        @True: SET V(J(5)) = T ---> S3
+        @False: SET V(J(5) + 1) = T; SET V(J(5) + 2) = T; SET J(5) = J(5) + 2 ---> S3
+S3,
+    0.01": ---> S2
+
+
+
+
+
+
+
+
+
+
