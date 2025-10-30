@@ -12,6 +12,7 @@
 ^RightStimLight = 2                \ The output number for the right stimulus light
 ^LeftSipper = 5                \ The output number for the left sipper when looking at the front of the chamber
 ^RightSipper = 9             \ The output number for the right sipper when looking at the front of the chamber
+^PiSync = 7                        \ The output number for the sync signal to the raspberry Pi
 
 
 
@@ -41,6 +42,9 @@
 \     times (0 = No, 1 = Yes).
 \ E = List of left lick times in seconds.
 \ F = List of right lick times in seconds.
+\ G = Total number of licks
+\ H = Array for sync signals
+\ I = Pi sync signal counter
 \ J = List of Beam State Transition Counters
 \ P = List of Beam 1 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
 \ Q = List of Beam 2 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
@@ -49,7 +53,8 @@
 \ U = List of Beam 5 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
 \ V = List of Beam 6 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
 \ T = Time in Seconds
-\ G = Total number of licks
+
+
 
 \ **************************** Z-Pulses *************************
 \ Z1: Starts the timer
@@ -63,6 +68,7 @@ DIM R = 5000
 DIM S = 5000
 DIM U = 5000
 DIM V = 5000
+DIM H = 10000
 
 
 \ *********************** Run the Program ************************
@@ -183,5 +189,13 @@ S2,
 S3,
     0.1": ---> STOPABORTFLUSH
 
+\ ****************** Sync signal every lick *******************
 
-
+S.S.5,
+S1,
+	#START: --->S2
+S2,
+	#R^LeftLick: ON^PiSync; ADD I; SET H(I) = T --->S3
+	#R^RightLick: ON^PiSync; ADD I; SET H(I) = T --->S3
+S3,
+	0.01": ---> S2
