@@ -182,7 +182,9 @@ D(0)#T: ---> s6
 s6,
 .01": IF P(0)=6 [@Yes,@No]
     @Yes: ---> s8
-    @No: ON^Pellet; ADD P(0) ---> s7
+    @No: IF ((R(0)+R(1)+R(2)+R(3))>9) AND ((R(0)+R(1)+R(2)+R(3))<=14) [@Yes, @No]
+        @Yes: SHOW 6,Omit Trial Number,K+1; ---> s8
+        @No: ON^Pellet; ADD P(0) ---> s7
 s7,
 .25": OFF^Pellet ---> s6
 s8,
@@ -201,7 +203,9 @@ s4,
 s5,
 .01": IF P(0)=P(1) [@Yes,@No]
     @Yes: ---> s7
-    @No: ON^Pellet; ADD P(0) ---> s6
+    @No: IF ((R(0)+R(1)+R(2)+R(3))>9) AND ((R(0)+R(1)+R(2)+R(3))<=14) [@Yes, @No]
+        @Yes: SHOW 6,Omit Trial Number,K+1; ---> s7
+        @No: ON^Pellet; ADD P(0) ---> s6
 s6,
 .25": OFF^Pellet ---> s5
 s7,
