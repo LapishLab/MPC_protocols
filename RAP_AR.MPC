@@ -207,10 +207,10 @@ S3,
 
 S.S.6,
 S1,
-	#START: Set K = 0.1 --->S2
+	#START: Set K = 0.1" --->S2
 S2,
 	0.001": ON^PiSync; ADD I; SET H(I) = T --->S3
 S3,
-	#KT": SET K = K+0.1; OFF ^PiSync; SET L(I) = T ---> S4
+	K#T: SET K = K+0.1; OFF ^PiSync; SET L(I) = T ---> S4
 S4,
 	9.999": --->S2
