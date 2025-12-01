@@ -43,9 +43,11 @@
 \ E = List of left lick times in seconds.
 \ F = List of right lick times in seconds.
 \ G = Total number of licks
-\ H = Array for sync signals
+\ H = Array for PiSync ON times
 \ I = Pi sync signal counter
 \ J = List of Beam State Transition Counters
+\ K = PiSync ON time in ms
+\ L = Array for PiSync OFF times
 \ P = List of Beam 1 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
 \ Q = List of Beam 2 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
 \ R = List of Beam 3 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
@@ -59,7 +61,7 @@
 \ **************************** Z-Pulses *************************
 \ Z1: Starts the timer
 \ *********************** Preallocate Arrays ********************
-DIM E = 5000
+DIM E = 5000 
 DIM F = 5000
 DIM J = 5
 DIM P = 5000
@@ -69,6 +71,7 @@ DIM S = 5000
 DIM U = 5000
 DIM V = 5000
 DIM H = 10000
+DIM L = 10000
 
 
 \ *********************** Run the Program ************************
@@ -191,11 +194,23 @@ S3,
 
 \ ****************** Sync signal every lick *******************
 
-S.S.5,
+\S.S.5,
+\S1,
+	\#START: --->S2
+\S2,
+	\#R^LeftLick: ON^PiSync; ADD I; SET H(I) = T --->S3
+	\#R^RightLick: ON^PiSync; ADD I; SET H(I) = T --->S3
+\S3,
+	\0.01": ---> S2
+
+\ ****************** Sync signal increasing variable timer *******************
+
+S.S.6,
 S1,
-	#START: --->S2
+	#START: Set K = 0.1 --->S2
 S2,
-	#R^LeftLick: ON^PiSync; ADD I; SET H(I) = T --->S3
-	#R^RightLick: ON^PiSync; ADD I; SET H(I) = T --->S3
+	0.001": ON^PiSync; ADD I; SET H(I) = T --->S3
 S3,
-	0.01": ---> S2
+	#KT": SET K = K+0.1; OFF ^PiSync; SET L(I) = T ---> S4
+S4,
+	9.999": --->S2
