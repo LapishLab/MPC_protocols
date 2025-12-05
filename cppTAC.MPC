@@ -5,7 +5,7 @@
 \Right = bar
 
 
-Activity beams??
+\ Activity beams??
 ^TAC1 = 4    \  Entrance Beam
 ^TAC2 = 3    \  Entrance Beam
 ^TAC3 = 2    \  Exploration Beam
@@ -14,9 +14,11 @@ Activity beams??
 ^Bar2 = 7    \  Entrance Beam
 ^Bar3 = 8    \  Entrance Beam
 
+^PiSync = 7 
 
 \ *** List of variables and arrays ***
 
+\  A = Timestamp for PiSync "OFF" times
 \  B() = Bar Floor Zone Data
 \    B(0) = Exploration Counts.  Label = barExpl
 \    B(1) = Entrance Counts.  Label = barEntr
@@ -26,9 +28,12 @@ Activity beams??
 \  D = Bar floor times split into 5 min bins
 \  E = Cumulative Bar floor entrance counts split into 5 min bins
 \  F = Cumulative TAC floor entrance counts split into 5 min bins
+\  H = Timestamp for PiSync "ON" times
+\  I = Counter for PiSync timestamp indexing
 \  J = Latency to first enter TAC floor chamber
 \  K = Latency to first enter bar floor chamber
 \  L = Bar floor Entries TimeStamp
+\  M = Time counter for increasing PiSync on time
 \  N = Bar floor Expl TimeStamp
 \  O = TAC floor Expl TimeStamp
 \  R = TAC floor Entries TimeStamp
@@ -177,12 +182,30 @@ S5,
   5' : SET E(3) = B(1); SET F(3) = W(1) ---> SX
 
 
-
+\********************
+\Loop for on-screen displayed information
+\************************
 
 S.S.5,
 
 S1,
 
 #START: ---> S2
+
 S2,
+
  1": SHOW 1, Time, T, 2, tacEntr, W(1), 3, barEntr, B(1), 4, tacExpl, W(0), 5, barExpl, B(0), 6, tacAct, W(2), 7, barAct, B(2), 8, W_TME, W(3), 9, B_TME, B(3), 10, firstTACEnt, J, 12, firstBarEnt, K ---> S3
+
+\********************
+\PiSync signal
+\************************
+
+S.S.6,
+S1,
+	#START: Set M = 0.1" --->S2
+S2,
+	0.001": ON^PiSync; ADD I; SET H(I) = T --->S3
+S3,
+	M#T: SET M = M+0.1; OFF ^PiSync; SET A(I) = T ---> S4
+S4,
+	9.999": --->S2
