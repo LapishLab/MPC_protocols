@@ -81,7 +81,7 @@ DIM L = 10000
 \ ************************* Start Up *************************
 S.S.1,
 S1,
-    #START: ON ^RightSipper; ON ^LeftSipper; Z1 ---> S2
+    #START: ON ^RightSipper; ON ^LeftSipper; Z1 ---> S2 
 S2,
     1": SHOW 1, Left Licks, A, 2, Right Licks, B, 3, Times, T --->S2
 
