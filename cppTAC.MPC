@@ -3,17 +3,7 @@
 \ One rat per chamber will be allowed to move around freely for 15 minutes. No stimulus or anything else will be used.
 \Left = TAC
 \Right = bar
-\  Place Preference Test w/ manual guillotine doors.
-\  with optional acclimation period.  ALERTON is
-\  used to signal the end of the acclimation and test
-\  periods.  Turn the tone off with menu item Configure
-\  Shut off Beep on teh MED-PC for Windows main menu.
-\  The 15 beams on the test chamber have
-\  been defined as follows.  Note, some
-\  bemas have been defined as follows. Note, Some
-\  beams hae been defined as exploratory vs entrance
-\  The end most beams are used for general activity
-\  only.  This coding may be modified if desired.
+
 
 Activity beams??
 ^TAC1 = 4    \  Entrance Beam
@@ -25,60 +15,40 @@ Activity beams??
 ^Bar3 = 8    \  Entrance Beam
 
 
-\  Variables and Arrays () used in this procedure
-\  V = Time value for time stamping arrays
-\  J= LATENCY TO ENTER TA floor CHAMBER
-\  K = LATENCY TO ENTER  bar floor CHAMBER
-\  D= BIN 1 TIME bar CHAMBER
-\  E= BIN 2 TIME bar CHAMBER
-\  F= BIN 3 TIME bar CHAMBER
-\  C= BIN 1 TIME TAC CHAMBER
-\  H= BIN 2 TIME TAC CHAMBER
-\  I= BIN 3 TIME TAC CHAMBER
+\ *** List of variables and arrays ***
+
 \  B() = Bar Floor Zone Data
-\      B(0) = Exploration Counts.  Label = barExpl
+\    B(0) = Exploration Counts.  Label = barExpl
 \    B(1) = Entrance Counts.  Label = barEntr
 \    B(2) = Activity Counts.  Label = barAct
 \    B(3) = zone Time.  Label = B_Tme
-\  T = Data Collection time.  Label TESTTM.  Default 15 minutes
-\  W() = TAC Floor Zone Data.  Same as Bar floor zone
+\  C = TAC floor times split into 5 min bins
+\  D = Bar floor times split into 5 min bins
+\  E = Cumulative Bar floor entrance counts split into 5 min bins
+\  F = Cumulative TAC floor entrance counts split into 5 min bins
+\  J = Latency to first enter TAC floor chamber
+\  K = Latency to first enter bar floor chamber
+\  L = Bar floor Entries TimeStamp
+\  N = Bar floor Expl TimeStamp
+\  O = TAC floor Expl TimeStamp
+\  R = TAC floor Entries TimeStamp
+\  T = session time, used for time stamping and clock
+\  W() = TAC Floor Zone Data.  Same breakdown as Bar floor zone B()
 
-\  Z-Pulses used in this procedure
+\  *** Z-Pulses ***
 \  Z1 = Signal start of data collection
 \  Z3 = Signal TAC floor Entrance
 \  Z4 = Signal Bar floor Entrance
-\  Z5 = Signal end of Data Collection
-
-\  L = Bar floor Entries TimeStamp
-\  R = TAC floor Entries TimeStamp
 
 
-\  N = Bar floor Expl TimeStamp
-\  O = TAC floor Expl TimeStamp
-
-\Binned Entry Count Data:
-\M = Bar Bin 1 Entries
-\Z = Bar Bin 2 Entries
-\Q = Bar Bin 3 Entries
-
-\Binned Entry Count Data:
-\S = TAC Bin 1 Entries
-\X = TAC Bin 2 Entries
-\Y = TAC Bin 3 Entries
-
-
-\  Dimension Arrays
+\ *** Dimension Arrays ***
 
 DIM B = 5
-DIM G = 5
 DIM W = 5
-DIM V = 4
-DIM L = 500
-DIM R = 500
-DIM U = 500
-DIM N = 500
-DIM O = 500
-DIM P = 500
+DIM L = 1000
+DIM R = 1000
+DIM N = 1000
+DIM O = 1000
 DIM C = 4
 DIM D = 4
 DIM E = 4
@@ -208,50 +178,9 @@ S5,
 
 
 
-\********************
-\white chamber entry time stamps
-\************************
-\S.S.12,
- \   S1,
-  \  #Start:--->S2
-   \ S2,
-    \ #R^TAC2 ! #R^TAC1: ADD W(1);Set R(W(1))= T ---> S2
-
-\********************
-\black chamber entry time stamps
-\************************
-\S.S.13,
- \   S1,
-  \  #Start:--->S2
-   \ S2,
-    \ #R^Bar2 ! #R^Bar3: ADD B(1);Set L(B(1))= T ---> S2
-
-\********************
-\gray chamber entry time stamps
-\************************
-\S.S.14,
- \   S1,
-  \  #Start:--->S2
-   \ S2,
-    \#R^Gray8 ! #R^Gray9:  ADD G(1);Set U(G(1))= T ---> S2
-
-\********************
-\white chamber expl time stamps
-\************************
-\S.S.15,
- \   S1,
-  \  #Start:--->S2
-   \ S2,
-    \ #R^TAC3: ADD W(0);Set O(W(0))= T ---> S2
-\********************
-\black chamber expl time stamps
-\************************
-\S.S.16,
- \   S1,
-  \  #Start:--->S2
-   \ S2,
-    \ #R^Bar1: ADD B(0);Set N(B(0))= T ---> S2
 
 S.S.5,
 
-SHOW 13,tacEntr, W(1), ; SHOW 19,barAct, B(2),  SHOW 8,tacExpl, W(0);; SHOW 18,tacAct, W(2) SHOW 14,barEntr, B(1); SHOW 9,barExpl, B(0);Show2,G_TME,G(3), 3,W_TME,W(3), 4,B_TME,B(3); SHOW 20,FIRSTENTWHITE,J, ; SHOW 21,FIRSTENTBLACK,K
+S1,
+
+#START: SHOW 1, Time, T,SHOW 13,tacEntr, W(1), ; SHOW 19,barAct, B(2),  SHOW 8,tacExpl, W(0);; SHOW 18,tacAct, W(2) SHOW 14,barEntr, B(1); SHOW 9,barExpl, B(0);Show2,G_TME,G(3), 3,W_TME,W(3), 4,B_TME,B(3); SHOW 20,FIRSTENTWHITE,J, ; SHOW 21,FIRSTENTBLACK,K
