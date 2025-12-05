@@ -136,7 +136,7 @@ S2,
 
 
 \********************
-\time data into 5 min bins
+\time data into 5 min bins for bar and TAC floor
 \************************
 S.S.9,
 
@@ -157,7 +157,7 @@ S5,
 
 
 \********************
-\cumulative entrance data in 5 min bins
+\cumulative entrance data in 5 min bins for bar and TAC floor
 \************************
 S.S.10,
 
@@ -183,4 +183,6 @@ S.S.5,
 
 S1,
 
-#START: SHOW 1, Time, T,SHOW 13,tacEntr, W(1), ; SHOW 19,barAct, B(2),  SHOW 8,tacExpl, W(0);; SHOW 18,tacAct, W(2) SHOW 14,barEntr, B(1); SHOW 9,barExpl, B(0);Show2,G_TME,G(3), 3,W_TME,W(3), 4,B_TME,B(3); SHOW 20,FIRSTENTWHITE,J, ; SHOW 21,FIRSTENTBLACK,K
+#START: ---> S2
+S2,
+ 1": SHOW 1, Time, T, 2, tacEntr, W(1), 3, barEntr, B(1), 4, tacExpl, W(0), 5, barExpl, B(0), 6, tacAct, W(2), 7, barAct, B(2), 8, W_TME, W(3), 9, B_TME, B(3), 10, firstTACEnt, J, 12, firstBarEnt, K ---> S3
