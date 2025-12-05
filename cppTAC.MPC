@@ -15,60 +15,56 @@
 \  The end most beams are used for general activity
 \  only.  This coding may be modified if desired.
 
+Activity beams??
+^TAC1 = 4    \  Entrance Beam
+^TAC2 = 3    \  Entrance Beam
+^TAC3 = 2    \  Exploration Beam
 
-^Left1 = 4    \  Entrance Beam
-^Left2 = 3    \  Entrance Beam
-^Left3 = 2    \  Exploration Beam
-
-^Right4 = 6    \  Exploration Beam
-^Right5 = 7    \  Entrance Beam
-^Right6 = 8    \  Entrance Beam
+^Bar1 = 6    \  Exploration Beam
+^Bar2 = 7    \  Entrance Beam
+^Bar3 = 8    \  Entrance Beam
 
 
 \  Variables and Arrays () used in this procedure
 \  V = Time value for time stamping arrays
-\  J= LATENCY TO ENTER Left CHAMBER
-\  K = LATENCY TO ENTER  Right CHAMBER
-\  D= BIN 1 TIME Right CHAMBER
-\  E= BIN 2 TIME Right CHAMBER
-\  F= BIN 3 TIME Right CHAMBER
-\  C= BIN 1 TIME Left CHAMBER
-\  H= BIN 2 TIME Left CHAMBER
-\  I= BIN 3 TIME Left CHAMBER
-\  A = Adaptation period.  Label ADAPT.  Default = 5 minutes
-\  B() = Black Zone Data
-\      B(0) = Exploration Counts.  Label = B_Expl
-\    B(1) = Entrance Counts.  Label = B_Entr
-\    B(2) = Activity Counts.  Label = B_Actv
+\  J= LATENCY TO ENTER TA floor CHAMBER
+\  K = LATENCY TO ENTER  bar floor CHAMBER
+\  D= BIN 1 TIME bar CHAMBER
+\  E= BIN 2 TIME bar CHAMBER
+\  F= BIN 3 TIME bar CHAMBER
+\  C= BIN 1 TIME TAC CHAMBER
+\  H= BIN 2 TIME TAC CHAMBER
+\  I= BIN 3 TIME TAC CHAMBER
+\  B() = Bar Floor Zone Data
+\      B(0) = Exploration Counts.  Label = barExpl
+\    B(1) = Entrance Counts.  Label = barEntr
+\    B(2) = Activity Counts.  Label = barAct
 \    B(3) = zone Time.  Label = B_Tme
-\  G() = Gray Zone Data.  Same as Black
 \  T = Data Collection time.  Label TESTTM.  Default 15 minutes
-\  W() = White Zone Data.  Same as Black
+\  W() = TAC Floor Zone Data.  Same as Bar floor zone
 
 \  Z-Pulses used in this procedure
 \  Z1 = Signal start of data collection
-\  Z2 = Signal Gray Entrance
-\  Z3 = Signal White Entrance
-\  Z4 = Signal Black Entrance
+\  Z3 = Signal TAC floor Entrance
+\  Z4 = Signal Bar floor Entrance
 \  Z5 = Signal end of Data Collection
 
-\  L = Black Entries TimeStamp
-\  R = White Entries TimeStamp
-\  U = Gray Entries TimeStamp
+\  L = Bar floor Entries TimeStamp
+\  R = TAC floor Entries TimeStamp
 
-\  N = Black Expl TimeStamp
-\  O = White Expl TimeStamp
-\  P = Gray Expl TimeStamp
 
-\Binned Entry Count Data:
-\M = Black Bin 1 Entries
-\Z = Black Bin 2 Entries
-\Q = Black Bin 3 Entries
+\  N = Bar floor Expl TimeStamp
+\  O = TAC floor Expl TimeStamp
 
 \Binned Entry Count Data:
-\S = White Bin 1 Entries
-\X = White Bin 2 Entries
-\Y = White Bin 3 Entries
+\M = Bar Bin 1 Entries
+\Z = Bar Bin 2 Entries
+\Q = Bar Bin 3 Entries
+
+\Binned Entry Count Data:
+\S = TAC Bin 1 Entries
+\X = TAC Bin 2 Entries
+\Y = TAC Bin 3 Entries
 
 
 \  Dimension Arrays
@@ -85,59 +81,21 @@ DIM O = 500
 DIM P = 500
 
 \  *******************************************************************
-\        Set Up and TIme Test Period(s)
+\        Set Up and Time Test Period(s)
 \  *******************************************************************
 
-S.S.1,    \  set default value for adaptation time "A" (5 min)
-          \  and total test time "T" (15 min).
+S.S.1,    
+          
 S1,
-    .01": Set A = 0, T = 20 ---> S2
 
-S2,     \ First Statement:  Wait for START command, Change
-        \  times to seconds, and proceed to S3 or S4
-        \ Second Statement:  Update show display in case
-        \  either variable "A" or "T" is changed.
+  #R^Bar1 ! #R^Bar2 ! #R^Bar3: Z1 ---> S2 \trigger start of session when rat is placed on bar floor side
 
-  #START: SET A = A*60, T = T*60; If A = 0 [@NoAdapt,@StartAdapt]
-    @NoAdapt: ---> S3
-    @StartAdapt: ---> S4
-  1": SHOW 1,ADAPT,A, 2,TESTTM,T ---> SX
+S2,
 
-S3,    \  Starting without Adaptation period.
-    \  Start Test Time when animal placed
-    \  in gray zone and issue signal Z1.
+  0.01": set T = T + 0.01; IF T >= 1200 [@End,@Continue] \set clock T in seconds and end session at 1200s (20 mins.)
+    @End: Z5 ---> STOPABORTFLUSH
+    @Continue: ---> S3
 
-  #R^Gray7 ! #R^Gray8 ! #R^Gray9: Z1 ---> S6
-
-S4,    \  Start Adaptation when animal placed in gray zone..
-
-  #R^Gray7 ! #R^Gray8 ! #R^Gray9: Z1 ---> S5
-
-S5,    \  Time Adaptation Period.
-    \  Signal End of Adaptation Period with computer "beep"
-    \  so that manual doors may be opened and issue signal Z1.
-
-  1": SUB A; SHOW 1,ADAPT,A/60;
-    IF A <= 0 [@StartTest,@ContnueAdapt]
-    @Start: SHOW 1,TESTTM,T/60; Z1 ---> S6
-    @Cont: ---> SX
-
-S6,     \  Time Test Period.  Close doors and issue end of session
-        \  signal 25 when test complete.
-
-  1": SUB T; SHOW 1, TESTTM,T/60;
-    IF T <= 0 [@EndTest,@ContinueTest]
-    @End: Z5 ---> S7
-    @Cont: ---> SX
-
-S7,     \  Allow time for screen update, terminate procedure
-    \  and save data.  If an automatic printout is desired
-    \  add the command PRINT to the @End statement above.
-    \  Also see the commands PRINTVARS, PRINTFOMAT, PRINTCOLUMNS,
-    \  and associated DISK commands as well as file saving options
-    \  in the USERS guide and help files.
-
-  2":  ---> STOPABORTFLUSH
 
 \ ***************************************************************
 \           Count Explorations, Entrances and Activity
@@ -149,35 +107,22 @@ S.S.2,    \ Wait for start signal Z1.  See variable definitions
 S1,
   #Z1: ---> S2
 
-S2,     \ Data Collection while in gray zone
+S2,      \ Data Collection while in bar floor zone
+  #R^Bar1 ! #R^Bar2 !  #R^Bar3 : ADD B(2) ---> SX \count Bar floor activity (e.g. beam breaks)
+  #R^TAC2 ! #R^TAC1: ADD W(1); Set R(W(1))= T; Z3 ---> S3 \count and timestamp TAC floor entrance
+  #R^TAC3: ADD W(0); Set O(W(0))= T ---> SX \count and timestamp TAC floor explore
+  #Z5: ---> S4
 
-  #R^White5 ! #R^White4: ADD W(1); SHOW 13,W_ENTR, W(1);Set R(W(1))= V(1); Z3 ---> S3
-  #R^White6: ADD W(0); SHOW 8,W_EXPL, W(0); Set O(W(0))= V(1) ---> SX
-  #R^Black11 ! #R^Black12: ADD B(1); SHOW 14,B_ENTR, B(1); Set L(B(1))= V(1); Z4 ---> S4
-  #R^Black10: ADD B(0); SHOW 9,B_EXPL, B(0); Set N(B(0))= V(1) ---> SX
-  #R^Gray8:  ADD G(2); SHOW 17,G_ACTV, G(2) ---> SX
-  #R^Gray7 ! #R^Gray9:  ADD G(2); SHOW 17,G_ACTV,G(2) ---> SX
-  #Z5: ---> S5
+S3,     \ Data Collection while in TAC floor zone
 
-S3,     \ Data Collection While in white zone
+  #R^TAC1 ! #R^TAC2  ! #R^TAC3: ADD W(2) ---> SX \count TAC floor activity (e.g. beam breaks)
+  #R^Bar2 ! #R^Bar3: ADD B(1); Set L(B(1))= T; Z4 ---> S2 \count and timestamp Bar floor entrance
+  #R^Bar1: ADD B(0); Set N(B(0))= T ---> SX \count and timestamp Bar floor explore
+  #Z5: ---> S4
 
-  #R^Gray8 ! #R^Gray9:  ADD G(1); SHOW 12,G_ENTR,G(1); Set U(G(1))= V(1); Z2 ---> S2
-  #R^Gray7: ADD G(0); SHOW 7,G_EXPL, G(0); Set P(G(0))= V(1) ---> SX
-  #R^White1  ! #R^White2: ADD W(2); SHOW 18,W_ACTV, W(2) ---> SX
-  #R^White3  ! #R^White4: ADD W(2); SHOW 18,W_ACTV, W(2) ---> SX
-  #R^White5  ! #R^White6: ADD W(2); SHOW 18,W_ACTV, W(2) ---> SX
-  #Z5: ---> S5
+S4,    
 
-S4,     \ Data Collection While in black zone
-  #R^Gray8 ! #R^Gray9:  ADD G(1); SHOW 12,G_ENTR,G(1); Z2 ---> S2
-  #R^Gray9: ADD G(0); SHOW 7,G_EXPL, G(0); Set P(G(0))= V(1) ---> SX
-  #R^Black10  ! #R^Black11: ADD B(2); SHOW 19,B_ACTV, B(2) ---> SX
-  #R^Black12  ! #R^Black13: ADD B(2); SHOW 19,B_ACTV, B(2) ---> SX
-  #R^Black14  ! #R^Black15: ADD B(2); SHOW 19,B_ACTV, B(2) ---> SX
-  #Z5: ---> S5
-
-S5,
-  1': ---> SX
+  0.01": ---> SX
 
 \  **************************************************************
 \                  Increment Zone Time
@@ -185,7 +130,7 @@ S5,
 
 S.S.3,    \  wait for start signal Z1.  Initialize screen displays.
 S1,
-  #Z1:  Show2,G_TME,G(3), 3,W_TME,W(3), 4,B_TME,B(3) ---> S2
+  #Z1:   ---> S2
 
 S2,    \  Gray Zone Time
 
@@ -219,7 +164,7 @@ S1,
 #Z1---> S2
 
 S2,
-   #R^White5 ! #R^White4: SET J=T; SHOW 20,FIRSTENTWHITE,J---> S3
+   #R^TAC2 ! #R^TAC1: SET J=T; SHOW 20,FIRSTENTWHITE,J---> S3
 
 S3,
   #Z5: ---> S4
@@ -234,7 +179,7 @@ S1,
    #Z1---> S2
 
 S2,
-   #R^Black11 ! #R^Black12: SET K=T; SHOW 21,FIRSTENTBLACK,K--->S3
+   #R^Bar2 ! #R^Bar3: SET K=T; SHOW 21,FIRSTENTBLACK,K--->S3
 
 S3,
   #Z5: ---> S4
@@ -298,7 +243,7 @@ S6,    \  Holding state at end of procedure
  \   S1,
   \  #Start:--->S2
    \ S2,
-    \ #R^White5 ! #R^White4: ADD W(1);Set R(W(1))= V(1) ---> S2
+    \ #R^TAC2 ! #R^TAC1: ADD W(1);Set R(W(1))= T ---> S2
 
 \********************
 \black chamber entry time stamps
@@ -307,7 +252,7 @@ S6,    \  Holding state at end of procedure
  \   S1,
   \  #Start:--->S2
    \ S2,
-    \ #R^Black11 ! #R^Black12: ADD B(1);Set L(B(1))= V(1) ---> S2
+    \ #R^Bar2 ! #R^Bar3: ADD B(1);Set L(B(1))= T ---> S2
 
 \********************
 \gray chamber entry time stamps
@@ -316,7 +261,7 @@ S6,    \  Holding state at end of procedure
  \   S1,
   \  #Start:--->S2
    \ S2,
-    \#R^Gray8 ! #R^Gray9:  ADD G(1);Set U(G(1))= V(1) ---> S2
+    \#R^Gray8 ! #R^Gray9:  ADD G(1);Set U(G(1))= T ---> S2
 
 \********************
 \white chamber expl time stamps
@@ -325,7 +270,7 @@ S6,    \  Holding state at end of procedure
  \   S1,
   \  #Start:--->S2
    \ S2,
-    \ #R^White6: ADD W(0);Set O(W(0))= V(1) ---> S2
+    \ #R^TAC3: ADD W(0);Set O(W(0))= T ---> S2
 \********************
 \black chamber expl time stamps
 \************************
@@ -333,29 +278,8 @@ S6,    \  Holding state at end of procedure
  \   S1,
   \  #Start:--->S2
    \ S2,
-    \ #R^Black10: ADD B(0);Set N(B(0))= V(1) ---> S2
+    \ #R^Bar1: ADD B(0);Set N(B(0))= T ---> S2
 
-\********************
-\gray chamber expl time stamps a
-\************************
-\S.S.17,
- \   S1,
-  \  #Start:--->S2
-   \ S2,
-    \#R^Gray7:  ADD G(0);Set P(G(0))= V(1) ---> S2
-\********************
-\gray chamber expl time stamps b
-\************************
-\S.S.18,
- \   S1,
-  \  #Start:--->S2
-   \ S2,
-    \#R^Gray9:  ADD G(0);Set P(G(0))= V(1) ---> S2
-\********************
-\event clock
-\************************
-S.S.11,
-    S1,
-    #Z1:--->S2
-    S2,
-    0.01": Set V(1) = V(1) + 0.01 ---> SX
+S.S.5,
+
+SHOW 13,tacEntr, W(1), ; SHOW 19,barAct, B(2),  SHOW 8,tacExpl, W(0);; SHOW 18,tacAct, W(2) SHOW 14,barEntr, B(1); SHOW 9,barExpl, B(0);Show2,G_TME,G(3), 3,W_TME,W(3), 4,B_TME,B(3)
