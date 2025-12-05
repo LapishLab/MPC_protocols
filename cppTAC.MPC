@@ -14,7 +14,7 @@
 ^Bar2 = 7    \  Entrance Beam
 ^Bar3 = 8    \  Entrance Beam
 
-^PiSync = 7 
+^PiSync = 7
 
 \ *** List of variables and arrays ***
 
@@ -47,7 +47,8 @@
 
 
 \ *** Dimension Arrays ***
-
+DIM A = 30
+DIM H = 30
 DIM B = 5
 DIM W = 5
 DIM L = 1000
@@ -62,8 +63,8 @@ DIM F = 4
 \        Set Up and Time Test Period(s)
 \  *******************************************************************
 
-S.S.1,    
-          
+S.S.1,
+
 S1,
 
   #R^Bar1 ! #R^Bar2 ! #R^Bar3: Z1 ---> S2 \trigger start of session when rat is placed on bar floor side
@@ -75,7 +76,7 @@ S2,
     @Continue: ---> S2
 S3,
 
-	0.5": STOPABORTFLUSH ---> SX
+    0.5": ---> STOPABORTFLUSH
 
 
 \ ***************************************************************
@@ -134,10 +135,13 @@ S2,
 \***************
 S.S.8,
 S1,
-   #Z1---> S2
+   #Z3---> S2
 
 S2,
-   #R^Bar2 ! #R^Bar3: SET K=T --->S1
+   #R^Bar2 ! #R^Bar3: SET K=T --->S3
+
+S3,
+    20': ---> S1
 
 
 \********************
@@ -194,7 +198,7 @@ S1,
 
 S2,
 
- 1": SHOW 1, Time, T, 2, tacEntr, W(1), 3, barEntr, B(1), 4, tacExpl, W(0), 5, barExpl, B(0), 6, tacAct, W(2), 7, barAct, B(2), 8, W_TME, W(3), 9, B_TME, B(3), 10, firstTACEnt, J, 12, firstBarEnt, K ---> S3
+ 0.01": SHOW 1, sessionTime, T/60, 2, tacEntr, W(1), 3, barEntr, B(1), 4, tacExpl, W(0), 5, barExpl, B(0), 6, tacAct, W(2), 7, barAct, B(2), 8, tacTime, W(3), 9, barTime, B(3), 10, firstTACEnt, J, 11, firstBarEnt, K, ---> S2
 
 \********************
 \PiSync signal
@@ -202,10 +206,10 @@ S2,
 
 S.S.6,
 S1,
-	#START: Set M = 0.1" --->S2
+    #Z1: Set M = 0.1" --->S2
 S2,
-	0.001": ON^PiSync; ADD I; SET H(I) = T --->S3
+    0.001": ON^PiSync; ADD I; SET H(I) = T --->S3
 S3,
-	M#T: SET M = M+0.1; OFF ^PiSync; SET A(I) = T ---> S4
+    M#T: SET M = M+0.1; OFF ^PiSync; SET A(I) = T ---> S4
 S4,
-	9.999": --->S2
+    9.999": --->S2
