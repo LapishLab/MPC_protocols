@@ -79,7 +79,10 @@ DIM U = 500
 DIM N = 500
 DIM O = 500
 DIM P = 500
-
+DIM C = 4
+DIM D = 4
+DIM E = 4
+DIM F = 4
 \  *******************************************************************
 \        Set Up and Time Test Period(s)
 \  *******************************************************************
@@ -93,8 +96,11 @@ S1,
 S2,
 
   0.01": set T = T + 0.01; IF T >= 1200 [@End,@Continue] \set clock T in seconds and end session at 1200s (20 mins.)
-    @End: ---> STOPABORTFLUSH
-    @Continue: ---> S3
+    @End: ---> S3
+    @Continue: ---> S2
+S3,
+
+	0.5": STOPABORTFLUSH ---> SX
 
 
 \ ***************************************************************
@@ -147,14 +153,8 @@ S1,
 #Z1---> S2
 
 S2,
-   #R^TAC2 ! #R^TAC1: SET J=T; SHOW 20,FIRSTENTWHITE,J---> S3
+   #R^TAC2 ! #R^TAC1: SET J=T ---> S1
 
-S3,
-  #Z5: ---> S4
-
-S4,    \  Holding state at end of procedure
-
-  1': ---> SX
 
 \***************
 S.S.8,
@@ -162,17 +162,11 @@ S1,
    #Z1---> S2
 
 S2,
-   #R^Bar2 ! #R^Bar3: SET K=T; SHOW 21,FIRSTENTBLACK,K--->S3
+   #R^Bar2 ! #R^Bar3: SET K=T --->S1
 
-S3,
-  #Z5: ---> S4
-
-S4,    \  Holding state at end of procedure
-
-  1': ---> SX
 
 \********************
-\bins time data into 5 min bin
+\time data into 5 min bins
 \************************
 S.S.9,
 
@@ -180,20 +174,17 @@ S1,
 #Z1---> S2
 
 S2,
-   5' : SET D = B(3); SHOW 22, BIN1BLACK,D; SET c = W(3); SHOW 23, BIN1WHITE,c ---> S3
+   5' : SET D(0) = B(3); SET C(0) = W(3) ---> S3
 
 S3,
-   5' :  SET E = B(3); SHOW 24, BIN2BLACK,E; SET H = W(3); SHOW 25, BIN2WHITE,H ---> S4
+   5' : SET D(1) = B(3); SET C(1) = W(3) ---> S4
 
 S4,
-   5' :  SET F = B(3); SHOW 26, BIN3BLACK,F; SET I = W(3); SHOW 27, BIN3WHITE,I ---> S5
+   5' : SET D(2) = B(3); SET C(2) = W(3) ---> S5
 
 S5,
-#Z5: ---> S6
+   5' : SET D(3) = B(3); SET C(3) = W(3) ---> SX
 
-S6,    \  Holding state at end of procedure
-
-  1': ---> SX
 
 \********************
 \cumulative entrance data in 5 min bins
@@ -204,20 +195,18 @@ S1,
 #Z1---> S2
 
 S2,
-  5' : SET M = B(1); SHOW 28, BIN1Bent,M; SET S = W(1); SHOW 29, BIN1Went,S ---> S3
+  5' : SET E(0) = B(1); SET F(0) = W(1) ---> S3
 
 S3,
-  5' : SET Z = B(1); SHOW 30, BIN2Bent,Z; SET X = W(1); SHOW 31, BIN2Went,X ---> S4
+  5' : SET E(1) = B(1); SET F(1) = W(1) ---> S4
 
 S4,
-  5' : SET Q = B(1); SHOW 32, BIN3Bent,Q; SET Y = W(1); SHOW 33, BIN3Went,Y ---> S5
+  5' : SET E(2) = B(1); SET F(2) = W(1) ---> S5
 
 S5,
-#Z5: ---> S6
+  5' : SET E(3) = B(1); SET F(3) = W(1) ---> SX
 
-S6,    \  Holding state at end of procedure
 
-  1': ---> SX
 
 \********************
 \white chamber entry time stamps
@@ -265,4 +254,4 @@ S6,    \  Holding state at end of procedure
 
 S.S.5,
 
-SHOW 13,tacEntr, W(1), ; SHOW 19,barAct, B(2),  SHOW 8,tacExpl, W(0);; SHOW 18,tacAct, W(2) SHOW 14,barEntr, B(1); SHOW 9,barExpl, B(0);Show2,G_TME,G(3), 3,W_TME,W(3), 4,B_TME,B(3)
+SHOW 13,tacEntr, W(1), ; SHOW 19,barAct, B(2),  SHOW 8,tacExpl, W(0);; SHOW 18,tacAct, W(2) SHOW 14,barEntr, B(1); SHOW 9,barExpl, B(0);Show2,G_TME,G(3), 3,W_TME,W(3), 4,B_TME,B(3); SHOW 20,FIRSTENTWHITE,J, ; SHOW 21,FIRSTENTBLACK,K
