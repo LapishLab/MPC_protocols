@@ -93,7 +93,7 @@ S1,
 S2,
 
   0.01": set T = T + 0.01; IF T >= 1200 [@End,@Continue] \set clock T in seconds and end session at 1200s (20 mins.)
-    @End: Z5 ---> STOPABORTFLUSH
+    @End: ---> STOPABORTFLUSH
     @Continue: ---> S3
 
 
@@ -111,49 +111,32 @@ S2,      \ Data Collection while in bar floor zone
   #R^Bar1 ! #R^Bar2 !  #R^Bar3 : ADD B(2) ---> SX \count Bar floor activity (e.g. beam breaks)
   #R^TAC2 ! #R^TAC1: ADD W(1); Set R(W(1))= T; Z3 ---> S3 \count and timestamp TAC floor entrance
   #R^TAC3: ADD W(0); Set O(W(0))= T ---> SX \count and timestamp TAC floor explore
-  #Z5: ---> S4
 
 S3,     \ Data Collection while in TAC floor zone
 
   #R^TAC1 ! #R^TAC2  ! #R^TAC3: ADD W(2) ---> SX \count TAC floor activity (e.g. beam breaks)
   #R^Bar2 ! #R^Bar3: ADD B(1); Set L(B(1))= T; Z4 ---> S2 \count and timestamp Bar floor entrance
   #R^Bar1: ADD B(0); Set N(B(0))= T ---> SX \count and timestamp Bar floor explore
-  #Z5: ---> S4
 
-S4,    
-
-  0.01": ---> SX
 
 \  **************************************************************
 \                  Increment Zone Time
 \  **************************************************************
 
-S.S.3,    \  wait for start signal Z1.  Initialize screen displays.
+S.S.3,    \  wait for start signal Z1
 S1,
-  #Z1:   ---> S2
+  #Z1: ---> S2
 
-S2,    \  Gray Zone Time
+S2,    \  Bar floor Zone Time
 
-  .1": SET G(3) = G(3) + 0.1; SHOW 2,G_TME,G(3) ---> SX
-  #Z3: SET G(3) = G(3) + 0.05; SHOW 2,G_TME,G(3) ---> S3
-  #Z4: SET G(3) = G(3) + 0.05; SHOW 2,G_TME,G(3) ---> S4
-  #Z5: ---> S5
+  0.01": SET B(3) = B(3) + 0.01  ---> SX \count bar floor time
+  #Z3: ---> S3 \if they make a TAC floor entry, stop adding bar floor time and start counting TAC floor time
 
-S3,    \  White Zone Time
+S3,    \  TAC floor Zone Time
 
-  .1": SET W(3) = W(3) + 0.1; SHOW 3,W_TME,W(3) ---> SX
-  #Z2: SET W(3) = W(3) + 0.05; SHOW 3,W_TME,W(3) ---> S2
-  #Z5: ---> S5
+  0.01": SET W(3) = W(3) + 0.01 ---> SX \count TAC floor time
+  #Z4: ---> S2 \if they make a bar floor entry, stop adding TAC floor time and start counting bar floor time
 
-S4,    \  Black Zone Time
-
-  .1": SET B(3) = B(3) + 0.1; SHOW 4,B_TME,B(3) ---> SX
-  #Z2: SET B(3) = B(3) + 0.05; SHOW 4,B_TME,B(3) ---> S2
-  #Z5: ---> S5
-
-S5,    \  Holding state at end of procedure
-
-  1': ---> SX
 
 \***************************
 \Show time of entry to chamber
