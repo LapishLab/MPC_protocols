@@ -61,7 +61,7 @@
 \ **************************** Z-Pulses *************************
 \ Z1: Starts the timer
 \ *********************** Preallocate Arrays ********************
-DIM E = 5000 
+DIM E = 5000
 DIM F = 5000
 DIM J = 5
 DIM P = 5000
@@ -81,7 +81,7 @@ DIM L = 10000
 \ ************************* Start Up *************************
 S.S.1,
 S1,
-    #START: ON ^RightSipper; ON ^LeftSipper; Z1 ---> S2 
+    #START: ON ^RightSipper; ON ^LeftSipper; Z1 ---> S2
 S2,
     1": SHOW 1, Left Licks, A, 2, Right Licks, B, 3, Times, T --->S2
 
@@ -196,21 +196,21 @@ S3,
 
 \S.S.5,
 \S1,
-	\#START: --->S2
+    \#START: --->S2
 \S2,
-	\#R^LeftLick: ON^PiSync; ADD I; SET H(I) = T --->S3
-	\#R^RightLick: ON^PiSync; ADD I; SET H(I) = T --->S3
+    \#R^LeftLick: ON^PiSync; ADD I; SET H(I) = T --->S3
+    \#R^RightLick: ON^PiSync; ADD I; SET H(I) = T --->S3
 \S3,
-	\0.01": ---> S2
+    \0.01": ---> S2
 
 \ ****************** Sync signal increasing variable timer *******************
 
 S.S.6,
 S1,
-	#START: Set K = 0.1" --->S2
+    #START: Set K = 0.1" --->S2
 S2,
-	0.001": ON^PiSync; ADD I; SET H(I) = T --->S3
+    0.001": ON^PiSync; SET H(I) = T; ADD I --->S3
 S3,
-	K#T: SET K = K+0.1; OFF ^PiSync; SET L(I) = T ---> S4
+    K#T: OFF^PiSync; SET L(I) = T; SET K = K+0.1"  ---> S4
 S4,
-	9.999": --->S2
+    9.999": --->S2
