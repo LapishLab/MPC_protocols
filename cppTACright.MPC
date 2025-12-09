@@ -1,0 +1,216 @@
+\ CPP style program for analysis of tactile aversion floors
+\ This program tracks the movement of the rats in the 2CAP chamber using the time of the beam breaks.
+\ One rat per chamber will be allowed to move around freely for 15 minutes. No stimulus or anything else will be used.
+\Left = TAC
+\Right = bar
+
+
+\ Activity beams??
+^TAC1 = 8
+^TAC2 = 7    \  Entrance Beam
+^TAC3 = 6    \  Entrance Beam
+^TAC4 = 5  \  Exploration Beam
+
+^Bar1 = 1    \  Exploration Beam
+^Bar2 = 2    \  Entrance Beam
+^Bar3 = 3    \  Entrance Beam
+^Bar4 = 4
+^PiSync = 7
+
+\ *** List of variables and arrays ***
+
+\  A = Timestamp for PiSync "OFF" times
+\  B() = Bar Floor Zone Data
+\    B(0) = Exploration Counts.  Label = barExpl
+\    B(1) = Entrance Counts.  Label = barEntr
+\    B(2) = Activity Counts.  Label = barAct
+\    B(3) = zone Time.  Label = B_Tme
+\  C = TAC floor times split into 5 min bins
+\  D = Bar floor times split into 5 min bins
+\  E = Cumulative Bar floor entrance counts split into 5 min bins
+\  F = Cumulative TAC floor entrance counts split into 5 min bins
+\  H = Timestamp for PiSync "ON" times
+\  I = Counter for PiSync timestamp indexing
+\  J = Latency to first enter TAC floor chamber
+\  K = Latency to first enter bar floor chamber
+\  L = Bar floor Entries TimeStamp
+\  M = Time counter for increasing PiSync on time
+\  N = Bar floor Expl TimeStamp
+\  O = TAC floor Expl TimeStamp
+\  R = TAC floor Entries TimeStamp
+\  T = session time, used for time stamping and clock
+\  W() = TAC Floor Zone Data.  Same breakdown as Bar floor zone B()
+
+\  *** Z-Pulses ***
+\  Z1 = Signal start of data collection
+\  Z3 = Signal TAC floor Entrance
+\  Z4 = Signal Bar floor Entrance
+
+
+\ *** Dimension Arrays ***
+DIM A = 500
+DIM H = 500
+DIM B = 5
+DIM W = 5
+DIM L = 1000
+DIM R = 1000
+DIM N = 1000
+DIM O = 1000
+DIM C = 4
+DIM D = 4
+DIM E = 4
+DIM F = 4
+\  *******************************************************************
+\        Set Up and Time Test Period(s)
+\  *******************************************************************
+
+S.S.1,
+
+S1,
+
+  #R^Bar1 ! #R^Bar2 ! #R^Bar3: Z1 ---> S2 \trigger start of session when rat is placed on bar floor side
+
+S2,
+
+  0.01": set T = T + 0.01; IF T >= 1200 [@End,@Continue] \set clock T in seconds and end session at 1200s (20 mins.)
+    @End: ---> S3
+    @Continue: ---> S2
+S3,
+
+    0.5": ---> STOPABORTFLUSH
+
+
+\ ***************************************************************
+\           Count Explorations, Entrances and Activity
+\ ***************************************************************
+
+S.S.2,    \ Wait for start signal Z1.  See variable definitions
+    \ for various counters.  Signals Z2, Z3 & Z4 are issued
+    \ when the animal moves from one zone to another.
+S1,
+  #Z1: ---> S2
+
+S2,      \ Data Collection while in bar floor zone
+  #R^Bar1 ! #R^Bar2 !  #R^Bar3 !  #R^Bar4 : ADD B(2) ---> SX \count Bar floor activity (e.g. beam breaks)
+  #R^TAC2 ! #R^TAC3: ADD W(1); Set R(W(1))= T; Z3 ---> S3 \count and timestamp TAC floor entrance
+  #R^TAC4: ADD W(0); Set O(W(0))= T ---> SX \count and timestamp TAC floor explore
+
+S3,     \ Data Collection while in TAC floor zone
+
+  #R^TAC1 ! #R^TAC2  ! #R^TAC3 ! #R^TAC4: ADD W(2) ---> SX \count TAC floor activity (e.g. beam breaks)
+  #R^Bar2 ! #R^Bar3: ADD B(1); Set L(B(1))= T; Z4 ---> S2 \count and timestamp Bar floor entrance
+  #R^Bar1: ADD B(0); Set N(B(0))= T ---> SX \count and timestamp Bar floor explore
+
+
+\  **************************************************************
+\                  Increment Zone Time
+\  **************************************************************
+
+S.S.3,    \  wait for start signal Z1
+S1,
+  #Z1: ---> S2
+
+S2,    \  Bar floor Zone Time
+
+  0.01": SET B(3) = B(3) + 0.01  ---> SX \count bar floor time
+  #Z3: ---> S3 \if they make a TAC floor entry, stop adding bar floor time and start counting TAC floor time
+
+S3,    \  TAC floor Zone Time
+
+  0.01": SET W(3) = W(3) + 0.01 ---> SX \count TAC floor time
+  #Z4: ---> S2 \if they make a bar floor entry, stop adding TAC floor time and start counting bar floor time
+
+
+\***************************
+\Show time of entry to chamber
+\****************************
+S.S.7,
+
+S1,
+#Z1---> S2
+
+S2,
+   #R^TAC2 ! #R^TAC3: SET J=T ---> S1
+
+
+\***************
+S.S.8,
+S1,
+   #Z3---> S2
+
+S2,
+   #R^Bar2 ! #R^Bar3: SET K=T --->S3
+
+S3,
+    20': ---> S1
+
+
+\********************
+\time data into 5 min bins for bar and TAC floor
+\************************
+S.S.9,
+
+S1,
+#Z1---> S2
+
+S2,
+   5' : SET D(0) = B(3); SET C(0) = W(3) ---> S3
+
+S3,
+   5' : SET D(1) = B(3); SET C(1) = W(3) ---> S4
+
+S4,
+   5' : SET D(2) = B(3); SET C(2) = W(3) ---> S5
+
+S5,
+   5' : SET D(3) = B(3); SET C(3) = W(3) ---> SX
+
+
+\********************
+\cumulative entrance data in 5 min bins for bar and TAC floor
+\************************
+S.S.10,
+
+S1,
+#Z1---> S2
+
+S2,
+  5' : SET E(0) = B(1); SET F(0) = W(1) ---> S3
+
+S3,
+  5' : SET E(1) = B(1); SET F(1) = W(1) ---> S4
+
+S4,
+  5' : SET E(2) = B(1); SET F(2) = W(1) ---> S5
+
+S5,
+  5' : SET E(3) = B(1); SET F(3) = W(1) ---> SX
+
+
+\********************
+\Loop for on-screen displayed information
+\************************
+
+S.S.5,
+
+S1,
+
+#START: ---> S2
+
+S2,
+
+ 0.01": SHOW 1, sessionTime, T/60, 2, tacEntr, W(1), 3, barEntr, B(1), 4, tacExpl, W(0), 5, barExpl, B(0), 6, tacAct, W(2), 7, barAct, B(2), 8, tacTime, W(3), 9, barTime, B(3), 10, firstTACEnt, J, 11, firstBarEnt, K, ---> S2
+
+\********************
+\PiSync signal
+\************************
+
+S.S.6,
+S1,
+    #Z1: Set M = 0.1" --->S2
+S2,
+    0.001": ON^PiSync; ADD I; SET H(I) = T --->S3
+S3,
+    M#T: SET M = M+0.1; OFF ^PiSync; SET A(I) = T ---> S4
+S4,
+    9.999": --->S2
