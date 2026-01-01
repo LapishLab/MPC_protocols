@@ -1,0 +1,24 @@
+\ MPC code for Tactile Aversion Choice (TAC) training and probably testing, tbd
+
+\ **************************** Inputs ***************************
+\ IR beams are numbered from left sipper to right sipper. Because
+\ we are also recording licks, we will only record the three IR
+\ beams closest to each sipper (middle two are dropped). Note
+\ that on the Med Associates card, these inputs should be set to
+\ level.
+^IR_1  = 4
+^IR_2  = 3
+^IR_3  = 2
+^IR_4  = 6
+^IR_5 = 7
+^IR_6 = 8
+\ The licks are recorded for the matching sippers. Note that on
+\ the Med Associates card, these inputs should be set to toggle.
+^LeftLick = 1
+^RightLick = 5
+\ **************************** Outputs ***************************
+^LeftStimLight = 1                 \ The output number for the left stimulus light
+^RightStimLight = 2                \ The output number for the right stimulus light
+^LeftSipper = 5                    \ The output number for the left sipper when looking at the front of the chamber
+^RightSipper = 9                   \ The output number for the right sipper when looking at the front of the chamber
+^PiSync = 7                        \ The output number for the sync signal to the raspberry Pi
