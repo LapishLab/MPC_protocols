@@ -27,15 +27,19 @@
 
 \  A = Timestamp for light on and PiSync "ON" times for choice trials
 \  B = Counter
-	B(0) = Total trial counter
-	B(1) = Forced trial counter
+\	B(0) = Total trial counter
+\	B(1) = Forced trial counter
+\	B(2) = Choice trial counter
+	B(3) = Number of bar choices
+\	B(4) = Number of tac choices
 \  C = List for intertrial interval (ITI) times
 \  D = Variable selected for the ITIs each time
-\  E = number of forced trials at the beginning
+\  E = number of forced trials compared to choice
 \  F = List for forced trial selection
 \  G = Forced trial type (1 = TAC, 2 = Bar)
 \  H = Timestamp for light on and PiSync "ON" times for forced trials
 \  I = Counter for PiSync timestamp indexing
+\  J = number of choice trials compared to forced
 \  M = Time counter for increasing PiSync on time
 \  T = session time, used for time stamping and clock
 
@@ -54,7 +58,7 @@ S.S.1,
 
 S1,
 
-  #START: Z1, Z5 ---> S2 \trigger start of session with issue
+  #START: SET J = 4-E; Z1; Z5 ---> S2 \trigger start of session with issue
 
 S2,
 
@@ -64,16 +68,21 @@ S2,
 S3,
 
     0.5": ---> STOPABORTFLUSH
-
+\  *******************************************************************
+\        Decision tree for type of trials
+\  *******************************************************************
 S.S.2,
 S1,
 #Z5:--->S2
 S2,
 0.01":IF B(1) = E [@TRUE,@FALSE]
-	@TRUE: Z4 --->S1
+	@TRUE: SET B(1) = 0; Z4 --->S1
 	@FALSE: RANDD G = F; IF G = 1 [@TRUE,@FALSE]
 		@TRUE: Z2 ---> S1
 		@FALSE: Z3 --->S1
+\  *******************************************************************
+\        Forced trial on TAC side
+\  *******************************************************************
 S.S.3,
 S1,
 #Z2: RANDD D = C --->S2
@@ -84,29 +93,40 @@ S3,
 S4,
 1": ON^tacSipper ---> S5
 S5,
-6.5": OFF^tacSipper; Z5 ---> S1
-
+6.5": OFF^tacSipper; ADD B(0), B(1); Z5 ---> S1
+\  *******************************************************************
+\        Forced trial on Bar side
+\  *******************************************************************
 S.S.4,
 S1,
-#Z2: RANDD D = C --->S2
+#Z3: RANDD D = C --->S2
 S2,
-D#T: ON^tacStimLight, ^PiSync; ADD I; SET H(I) = T ---> S3
+D#T: ON^barStimLight, ^PiSync; ADD I; SET H(I) = T ---> S3
 S3,
-4": OFF^tacStimLight, ^PiSync ---> S4
+4": OFF^barStimLight, ^PiSync ---> S4
 S4,
-1": ON^tacSipper ---> S5
+1": ON^barSipper ---> S5
 S5,
-6.5": OFF^tacSipper; Z5 ---> S1
-\********************
-\PiSync signal
-\************************
-
-S.S.6,
+1.5": OFF^barSipper; ADD B(0), B(1); Z5 ---> S1
+\  *******************************************************************
+\        Choice trial between TAC or Bar side
+\  *******************************************************************
+S.S.5,
 S1,
-    #Z1: Set M = 0.1" --->S2
+#Z4: ---> S2
 S2,
-    0.001": ON^PiSync; ADD I; SET H(I) = T --->S3
+0.01": RANDD D = C --->S3
 S3,
-    M#T: SET M = M+0.1; OFF ^PiSync; SET A(I) = T ---> S4
+D#T: ON^tacStimLight, ^barStimLight, ^PiSync; ADD I; SET A(I) = T ---> S4
 S4,
-    9.999": --->S2
+4": OFF^tacStimLight, ^barStimLight, ^PiSync ---> S5
+S5,
+1": ON^tacSipper, ^barSipper ---> S6
+S6,
+1.5": OFF^barSipper ---> S7
+#R^barLick: OFF^tacSipper ---> S7
+6.5": OFF^tacSipper ---> S7
+S7,
+0.01": ADD B(0), B(2); IF B(2) = J [@TRUE, @FALSE]
+	@TRUE: SET B(2) = O; Z5 ---> S1
+	@FALSE: ---> S2
