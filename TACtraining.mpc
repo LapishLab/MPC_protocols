@@ -14,18 +14,18 @@
 ^IR_6 = 8
 \ The licks are recorded for the matching sippers. Note that on
 \ the Med Associates card, these inputs should be set to toggle.
-^LeftLick = 1
-^RightLick = 5
+^tacLick = 1
+^barLick = 5
 \ **************************** Outputs ***************************
-^LeftStimLight = 1                 \ The output number for the left stimulus light
-^RightStimLight = 2                \ The output number for the right stimulus light
-^LeftSipper = 5                    \ The output number for the left sipper when looking at the front of the chamber
-^RightSipper = 9                   \ The output number for the right sipper when looking at the front of the chamber
+^tacStimLight = 1                 \ The output number for the left stimulus light
+^barStimLight = 2                \ The output number for the right stimulus light
+^tacSipper = 5                    \ The output number for the left sipper when looking at the front of the chamber
+^barSipper = 9                   \ The output number for the right sipper when looking at the front of the chamber
 ^PiSync = 7                        \ The output number for the sync signal to the raspberry Pi
 
 \ *** List of variables and arrays ***
 
-\  A = Timestamp for PiSync "OFF" times
+\  A = Timestamp for light on and PiSync "ON" times for choice trials
 \  B = Counter
 	B(0) = Total trial counter
 	B(1) = Forced trial counter
@@ -34,7 +34,7 @@
 \  E = number of forced trials at the beginning
 \  F = List for forced trial selection
 \  G = Forced trial type (1 = TAC, 2 = Bar)
-\  H = Timestamp for PiSync "ON" times
+\  H = Timestamp for light on and PiSync "ON" times for forced trials
 \  I = Counter for PiSync timestamp indexing
 \  M = Time counter for increasing PiSync on time
 \  T = session time, used for time stamping and clock
@@ -73,8 +73,30 @@ S2,
 	@TRUE: Z4 --->S1
 	@FALSE: RANDD G = F; IF G = 1 [@TRUE,@FALSE]
 		@TRUE: Z2 ---> S1
-		@FALSE: 
+		@FALSE: Z3 --->S1
+S.S.3,
+S1,
+#Z2: RANDD D = C --->S2
+S2,
+D#T: ON^tacStimLight, ^PiSync; ADD I; SET H(I) = T ---> S3
+S3,
+4": OFF^tacStimLight, ^PiSync ---> S4
+S4,
+1": ON^tacSipper ---> S5
+S5,
+6.5": OFF^tacSipper; Z5 ---> S1
 
+S.S.4,
+S1,
+#Z2: RANDD D = C --->S2
+S2,
+D#T: ON^tacStimLight, ^PiSync; ADD I; SET H(I) = T ---> S3
+S3,
+4": OFF^tacStimLight, ^PiSync ---> S4
+S4,
+1": ON^tacSipper ---> S5
+S5,
+6.5": OFF^tacSipper; Z5 ---> S1
 \********************
 \PiSync signal
 \************************
