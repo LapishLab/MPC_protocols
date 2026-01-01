@@ -22,3 +22,24 @@
 ^LeftSipper = 5                    \ The output number for the left sipper when looking at the front of the chamber
 ^RightSipper = 9                   \ The output number for the right sipper when looking at the front of the chamber
 ^PiSync = 7                        \ The output number for the sync signal to the raspberry Pi
+
+
+
+
+
+
+
+
+\********************
+\PiSync signal
+\************************
+
+S.S.6,
+S1,
+    #Z1: Set M = 0.1" --->S2
+S2,
+    0.001": ON^PiSync; ADD I; SET H(I) = T --->S3
+S3,
+    M#T: SET M = M+0.1; OFF ^PiSync; SET A(I) = T ---> S4
+S4,
+    9.999": --->S2
