@@ -92,13 +92,13 @@ S1,
 
 S2,      \ Data Collection while in bar floor zone
   #R^Bar1 ! #R^Bar2 !  #R^Bar3 !  #R^Bar4 : ADD B(2) ---> SX \count Bar floor activity (e.g. beam breaks)
-  #R^TAC2 ! #R^TAC3: ADD W(1); Set R(W(1))= T; Z3 ---> S3 \count and timestamp TAC floor entrance
+  #R^TAC1 ! #R^TAC2: ADD W(1); Set R(W(1))= T; Z3 ---> S3 \count and timestamp TAC floor entrance
   #R^TAC4: ADD W(0); Set O(W(0))= T ---> SX \count and timestamp TAC floor explore
 
 S3,     \ Data Collection while in TAC floor zone
 
   #R^TAC1 ! #R^TAC2  ! #R^TAC3 ! #R^TAC4: ADD W(2) ---> SX \count TAC floor activity (e.g. beam breaks)
-  #R^Bar2 ! #R^Bar3: ADD B(1); Set L(B(1))= T; Z4 ---> S2 \count and timestamp Bar floor entrance
+  #R^Bar3 ! #R^Bar4: ADD B(1); Set L(B(1))= T; Z4 ---> S2 \count and timestamp Bar floor entrance
   #R^Bar1: ADD B(0); Set N(B(0))= T ---> SX \count and timestamp Bar floor explore
 
 
