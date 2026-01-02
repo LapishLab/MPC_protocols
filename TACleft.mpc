@@ -81,7 +81,7 @@
 \        Arrays and lists
 \  *******************************************************************
 DIM A = 40
-DIM B = 11
+DIM B = 10
 DIM H = 40
 DIM K = 5000
 DIM L = 5000
@@ -136,10 +136,9 @@ D#T: ON^tacStimLight, ^PiSync; ADD I; SET H(I) = T ---> S3 \wait D seconds then 
 S3,
 4": OFF^tacStimLight, ^PiSync ---> S4 \turn off cue light and pisync after 4s
 S4,
-1": ON^tacSipper; Z6 ---> S5 \wait 1s, then put sipper out
+1": ON^tacSipper; Z6; Z8 ---> S5 \wait 1s, then put sipper out
 S5,
 6.5": OFF^tacSipper; ADD B(0), B(1); SET M(B(0))=1; Z5 ---> S1 \leave sipper out for 6.5s (really 6s of access, takes about 0.5s for the motor to fully extend the sipper). Add to counters
-#R^tacLick: ADD N ---> SX \during sipper access, check for a lick. if there is, add to engaged/drink trial counter
 \  *******************************************************************
 \        Forced trial on Bar side
 \  *******************************************************************
@@ -151,10 +150,9 @@ D#T: ON^barStimLight, ^PiSync; ADD I; SET H(I) = T ---> S3 \wait D seconds then 
 S3,
 4": OFF^barStimLight, ^PiSync ---> S4 \turn off cue light and pisync after 4s
 S4,
-1": ON^barSipper; Z6 ---> S5 \wait 1s, then put sipper out
+1": ON^barSipper; Z6; Z8 ---> S5 \wait 1s, then put sipper out
 S5,
 1.5": OFF^barSipper; ADD B(0), B(1); SET M(B(0))=2; Z5 ---> S1 \leave sipper out for 1.5s (really 1s of access, takes about 0.5s for the motor to fully extend the sipper). Add to counter
-#R^barLick: ADD N ---> SX \during sipper access, check for a lick. if there is, add to engaged/drink trial counter
 \  *******************************************************************
 \        Choice trial between TAC or Bar side
 \  *******************************************************************
@@ -168,11 +166,11 @@ D#T: ON^tacStimLight, ^barStimLight, ^PiSync; ADD I; SET A(I) = T ---> S4 \wait 
 S4,
 4": OFF^tacStimLight, ^barStimLight, ^PiSync ---> S5 \turn off cue lights and pisync after 4s
 S5,
-1": ON^tacSipper, ^barSipper; Z6; Z7 ---> S6 \wait 1s, then put both sippers out; Z7 is the off timer for the Bar Sipper
+1": ON^tacSipper, ^barSipper; Z6; Z7; Z9 ---> S6 \wait 1s, then put both sippers out; Z7 is the off timer for the Bar Sipper
 S6, \bunch of things happening/waiting here simultaneously
 6.5": OFF^tacSipper ---> S7 \generally, leave TAC side sipper out for 6s (0.5s is motor time). After this timer, go to S7
-#R^barLick: ADD B(4), N; OFF^tacSipper ---> SX \if a bar side lick is detected during access, retract TAC side sipper and add to counters. Added this to keep them from gaming the system by licking on bar side then running over to the TAC side after
-#R^tacLick: ADD B(3), N; OFF^barSipper ---> SX \if a TAC side lick is detected during access, retract TAC side sipper and add to counters
+#R^barLick: OFF^tacSipper ---> SX \if a bar side lick is detected during access, retract TAC side sipper and add to counters. Added this to keep them from gaming the system by licking on bar side then running over to the TAC side after
+#R^tacLick: OFF^barSipper ---> SX \if a TAC side lick is detected during access, retract TAC side sipper and add to counters
 S7,
 0.01": ADD B(0), B(2); SET M(B(0))=3; IF B(2) = J [@TRUE, @FALSE] \if choice trial counter matches J number of choice trials there are supposed to be for each block..
     @TRUE: SET B(2) = 0; Z5 ---> S1 \Reset choice trial counter for the next block, go back to decision tree to start next block
@@ -249,3 +247,21 @@ S1,
 #Z7: ---> S2
 S2,
 1.5": OFF^barSipper ---> SX \generally, leave bar side sipper out for 1s (0.5s is motor time)
+\********************
+\ Engaged trial counter for forced trials
+\************************
+S.S.14,
+S1,
+#Z8: ---> S2
+S2,
+#R^barLick: ADD N ---> S1 \during sipper access, check for a lick. if there is, add to engaged/drink trial counter
+#R^tacLick: ADD N ---> S1 \during sipper access, check for a lick. if there is, add to engaged/drink trial counter
+\********************
+\ Engaged trial and choice selection counter for choice trials
+\************************
+S.S.15,
+S1,
+#Z9: ---> S2
+S2,
+#R^barLick: ADD B(4), N ---> S1 \during sipper access, check for a lick. if there is, add to engaged/drink trial counter and TAC choice counter
+#R^tacLick: ADD B(3), N ---> S1 \during sipper access, check for a lick. if there is, add to engaged/drink trial counter and Bar choice counter
