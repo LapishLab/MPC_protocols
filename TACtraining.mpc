@@ -44,7 +44,7 @@
 \  J = number of choice trials compared to forced
 \  K = TAC lick timestamp array
 \  L = Bar lick timestamp array
-\  M = Trial type in order list
+\  M = Trial types in order for the session (1 = TAC forced, 2 = Bar forced, 3 = Choice trial)
 \  N = Engaged trial counter
 \  T = session time, used for time stamping and clock
 
@@ -53,11 +53,11 @@
 \  Z3 = Bar forced trial trigger
 \  Z4 = Choice trial trigger
 \  Z5 = decision tree for trial trigger
-\  Z6 = 
+\  Z6 = lick counting trigger during both trial types
 
-DIM A = 500
+DIM A = 40
 DIM B = 7
-DIM H = 500
+DIM H = 40
 DIM K = 5000
 DIM L = 5000
 DIM M = 40
@@ -78,7 +78,7 @@ S1,
 
 S2,
 
-  0.01": Set T = T + 0.01; IF B(0) = 40 [@End,@Continue] \set clock T in seconds and end session when B (trial counter) = 40
+  0.01": Set T = T + 0.01; IF B(0) = 40 [@End,@Continue] \set clock T in seconds and end session when B(0) (trial counter) = 40
     @End: ---> S3
     @Continue: ---> S2
 S3,
@@ -109,7 +109,7 @@ S3,
 S4,
 1": ON^tacSipper; Z6 ---> S5
 S5,
-6.5": OFF^tacSipper; ADD B(0), B(1); Z5 ---> S1
+6.5": OFF^tacSipper; ADD B(0), B(1); SET M(B(0))=1; Z5 ---> S1
 #R^tacLick: ADD N ---> SX
 \  *******************************************************************
 \        Forced trial on Bar side
@@ -124,7 +124,7 @@ S3,
 S4,
 1": ON^barSipper; Z6 ---> S5
 S5,
-1.5": OFF^barSipper; ADD B(0), B(1); Z5 ---> S1
+1.5": OFF^barSipper; ADD B(0), B(1); SET M(B(0))=2; Z5 ---> S1
 #R^barLick: ADD N ---> SX
 \  *******************************************************************
 \        Choice trial between TAC or Bar side
@@ -146,17 +146,21 @@ S6,
 #R^barLick: ADD B(4), N; OFF^tacSipper ---> SX
 #R^tacLick: ADD B(3), N; OFF^barSipper ---> SX
 S7,
-0.01": ADD B(0), B(2); IF B(2) = J [@TRUE, @FALSE]
+0.01": ADD B(0), B(2); SET M(B(0))=3; IF B(2) = J [@TRUE, @FALSE]
 	@TRUE: SET B(2) = O; Z5 ---> S1
 	@FALSE: ---> S2
-
+\  *******************************************************************
+\       Lick counter for TAC side
+\  *******************************************************************
 S.S.6,
 S1,
 #Z6: ---> S2
 S2,
 #R^tacLick: ADD B(5); SET K(B(5)) = T ---> S2
 7": ---> S1
-
+\  *******************************************************************
+\       Lick counter for Bar side
+\  *******************************************************************
 S.S.7,
 S1,
 #Z6: ---> S2
