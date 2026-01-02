@@ -6,12 +6,12 @@
 \ beams closest to each sipper (middle two are dropped). Note
 \ that on the Med Associates card, these inputs should be set to
 \ level.
-^IR_1  = 4
-^IR_2  = 3
-^IR_3  = 2
-^IR_4  = 6
-^IR_5 = 7
-^IR_6 = 8
+
+^tacSipBeam  = 4
+^tacEntBeam = 3
+^barSipBeam  = 8
+^barEntBeam = 7
+
 \ The licks are recorded for the matching sippers. Note that on
 \ the Med Associates card, these inputs should be set to toggle.
 ^tacLick = 1
@@ -30,10 +30,14 @@
 \	B(0) = Total trial counter
 \	B(1) = Forced trial counter
 \	B(2) = Choice trial counter
-	B(3) = Number of tac choices
+\	B(3) = Number of tac choices
 \	B(4) = Number of bar choices
-	B(5) = TAC lick counter
-	B(6) = Bar lick counter
+\	B(5) = TAC lick counter
+\	B(6) = Bar lick counter
+\	B(7) = TAC entry beam break counter
+\	B(8) = Bar entry beam break counter
+\	B(9) = TAC sipper beam break counter
+\	B(10) = Bar sipper beam break counter
 \  C = List for intertrial interval (ITI) times
 \  D = Variable selected for the ITIs each time
 \  E = number of forced trials compared to choice
@@ -46,6 +50,10 @@
 \  L = Bar lick timestamp array
 \  M = Trial types in order for the session (1 = TAC forced, 2 = Bar forced, 3 = Choice trial)
 \  N = Engaged trial counter
+\  O = TAC entry beam break timestamps
+\  P = Bar entry beam break timestamps
+\  Q = TAC sipper beam break timestamps
+\  R = Bar sipper beam break timestamps
 \  T = session time, used for time stamping and clock
 
 \  Z1 = general start trigger
@@ -150,7 +158,7 @@ S7,
 	@TRUE: SET B(2) = O; Z5 ---> S1
 	@FALSE: ---> S2
 \  *******************************************************************
-\       Lick counter for TAC side
+\       Lick counter and timestamp for TAC side
 \  *******************************************************************
 S.S.6,
 S1,
@@ -159,7 +167,7 @@ S2,
 #R^tacLick: ADD B(5); SET K(B(5)) = T ---> S2
 7": ---> S1
 \  *******************************************************************
-\       Lick counter for Bar side
+\       Lick counter and timestamp for Bar side
 \  *******************************************************************
 S.S.7,
 S1,
@@ -167,3 +175,35 @@ S1,
 S2,
 #R^barLick: ADD B(6); SET L(B(6)) = T ---> S2
 7": ---> S1
+\  *******************************************************************
+\       Beam break counter and timestamp for TAC entries
+\  *******************************************************************
+S.S.8,
+S1,
+#Z1: ---> S2
+S2,
+#R^tacEntBeam: ADD B(7); SET O(B(7)) = T ---> S2
+\  *******************************************************************
+\       Beam break counter and timestamp for Bar entries
+\  *******************************************************************
+S.S.9,
+S1,
+#Z1: ---> S2
+S2,
+#R^barEntBeam: ADD B(8); SET P(B(8)) = T ---> S2
+\  *******************************************************************
+\       Beam break counter and timestamp for TAC near sipper
+\  *******************************************************************
+S.S.10,
+S1,
+#Z1: ---> S2
+S2,
+#R^tacSipBeam: ADD B(9); SET Q(B(9)) = T ---> S2
+\  *******************************************************************
+\       Beam break counter and timestamp for Bar near sipper
+\  *******************************************************************
+S.S.11,
+S1,
+#Z1: ---> S2
+S2,
+#R^barSipBeam: ADD B(10); SET R(B(10)) = T ---> S2
