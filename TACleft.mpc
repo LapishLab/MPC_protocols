@@ -10,7 +10,7 @@
 
 \ E sets the ratio of forced trials to choice trials. So, if E = 6, 6 forced trials
 \ for every 2 choice trials. If E = 2, 2 forced trials for every 6 choice trials etc.
-\ Currently it's coded so it essentially runs in 5 blocks of  8 trials, with forced 
+\ Currently it's coded so it essentially runs in 5 blocks of  8 trials, with forced
 \ trials followed by choice trials each block. May change this depending on how it works
 \ out with the behavior/performance to make it more randomized when forced and choice trials
 \ happen... tbd.
@@ -29,27 +29,27 @@
 ^barLick = 5
 \ **************************** Outputs ***************************
 
-^tacStimLight = 1                 
-^barStimLight = 2               
-^tacSipper = 5                   
-^barSipper = 9                   
+^tacStimLight = 1
+^barStimLight = 2
+^tacSipper = 5
+^barSipper = 9
 ^PiSync = 7                        \ The output number for the sync signal to the raspberry Pi
 
 \ *** List of variables ***
 
 \  A = Timestamp for light on and PiSync "ON" times for CHOICE trials
 \  B = Counters
-\	B(0) = Total trial counter
-\	B(1) = Forced trial counter
-\	B(2) = Choice trial counter
-\	B(3) = Number of tac choices
-\	B(4) = Number of bar choices
-\	B(5) = TAC lick counter
-\	B(6) = Bar lick counter
-\	B(7) = TAC entry beam break counter
-\	B(8) = Bar entry beam break counter
-\	B(9) = TAC sipper beam break counter
-\	B(10) = Bar sipper beam break counter
+\    B(0) = Total trial counter
+\    B(1) = Forced trial counter
+\    B(2) = Choice trial counter
+\    B(3) = Number of tac choices
+\    B(4) = Number of bar choices
+\    B(5) = TAC lick counter
+\    B(6) = Bar lick counter
+\    B(7) = TAC entry beam break counter
+\    B(8) = Bar entry beam break counter
+\    B(9) = TAC sipper beam break counter
+\    B(10) = Bar sipper beam break counter
 \  C = List for intertrial interval (ITI) times
 \  D = Variable selected for the ITIs each time
 \  E = number of forced trials compared to choice
@@ -76,6 +76,7 @@
 \  Z4 = Choice trial trigger
 \  Z5 = decision tree for trial trigger
 \  Z6 = lick counting trigger during both trial types
+\  Z7 = turn off bar sipper during choice trials
 \  *******************************************************************
 \        Arrays and lists
 \  *******************************************************************
@@ -85,6 +86,10 @@ DIM H = 40
 DIM K = 5000
 DIM L = 5000
 DIM M = 40
+DIM O = 5000
+DIM P = 5000
+DIM Q = 5000
+DIM R = 5000
 
 LIST C = 10", 22", 36", 50", 68"
 LIST F = 1, 2
@@ -116,10 +121,10 @@ S1,
 #Z5:--->S2
 S2,
 0.01":IF B(1) = E [@TRUE,@FALSE] \ if number of forced trials in this block have reacher E number...
-	@TRUE: SET B(1) = 0; Z4 --->S1 \trigger set of choice trials, reset forced trial counter to 0 for next block
-	@FALSE: RANDD G = F; IF G = 1 [@TRUE,@FALSE] \if not, randomly select next forced trial type
-		@TRUE: Z2 ---> S1 \if G=1, go to TAC forced trial
-		@FALSE: Z3 --->S1 \if G\=1 (e.g. G=2), go to Bar forced trial
+    @TRUE: SET B(1) = 0; Z4 --->S1 \trigger set of choice trials, reset forced trial counter to 0 for next block
+    @FALSE: RANDD G = F; IF G = 1 [@TRUE,@FALSE] \if not, randomly select next forced trial type
+        @TRUE: Z2 ---> S1 \if G=1, go to TAC forced trial
+        @FALSE: Z3 --->S1 \if G\=1 (e.g. G=2), go to Bar forced trial
 \  *******************************************************************
 \        Forced trial on TAC side
 \  *******************************************************************
@@ -163,16 +168,15 @@ D#T: ON^tacStimLight, ^barStimLight, ^PiSync; ADD I; SET A(I) = T ---> S4 \wait 
 S4,
 4": OFF^tacStimLight, ^barStimLight, ^PiSync ---> S5 \turn off cue lights and pisync after 4s
 S5,
-1": ON^tacSipper, ^barSipper; Z6 ---> S6 \wait 1s, then put both sippers out
+1": ON^tacSipper, ^barSipper; Z6; Z7 ---> S6 \wait 1s, then put both sippers out; Z7 is the off timer for the Bar Sipper
 S6, \bunch of things happening/waiting here simultaneously
-1.5": OFF^barSipper ---> SX \generally, leave bar side sipper out for 1s (0.5s is motor time)
 6.5": OFF^tacSipper ---> S7 \generally, leave TAC side sipper out for 6s (0.5s is motor time). After this timer, go to S7
 #R^barLick: ADD B(4), N; OFF^tacSipper ---> SX \if a bar side lick is detected during access, retract TAC side sipper and add to counters. Added this to keep them from gaming the system by licking on bar side then running over to the TAC side after
 #R^tacLick: ADD B(3), N; OFF^barSipper ---> SX \if a TAC side lick is detected during access, retract TAC side sipper and add to counters
 S7,
 0.01": ADD B(0), B(2); SET M(B(0))=3; IF B(2) = J [@TRUE, @FALSE] \if choice trial counter matches J number of choice trials there are supposed to be for each block..
-	@TRUE: SET B(2) = O; Z5 ---> S1 \Reset choice trial counter for the next block, go back to decision tree to start next block
-	@FALSE: ---> S2 \continue with choice trials until B(2)=J
+    @TRUE: SET B(2) = 0; Z5 ---> S1 \Reset choice trial counter for the next block, go back to decision tree to start next block
+    @FALSE: ---> S2 \continue with choice trials until B(2)=J
 \  *******************************************************************
 \       Lick counter and timestamp for TAC side
 \  *******************************************************************
@@ -198,7 +202,7 @@ S.S.8,
 S1,
 #Z1: ---> S2
 S2,
-#R^tacEntBeam: ADD B(7); SET O(B(7)) = T ---> S2 \count and timestamp TAC entry beam breaks 
+#R^tacEntBeam: ADD B(7); SET O(B(7)) = T ---> S2 \count and timestamp TAC entry beam breaks
 \  *******************************************************************
 \       Beam break counter and timestamp for Bar entries
 \  *******************************************************************
@@ -206,7 +210,7 @@ S.S.9,
 S1,
 #Z1: ---> S2
 S2,
-#R^barEntBeam: ADD B(8); SET P(B(8)) = T ---> S2 \count and timestamp Bar entry beam breaks 
+#R^barEntBeam: ADD B(8); SET P(B(8)) = T ---> S2 \count and timestamp Bar entry beam breaks
 \  *******************************************************************
 \       Beam break counter and timestamp for TAC near sipper
 \  *******************************************************************
@@ -237,3 +241,11 @@ S1,
 S2,
 
  0.01": SHOW 1, trialCount, B(0), 2, engdTrials, N, 3, tacChoice, B(3), 4, barChoice, B(4), 5, tacLick, B(5), 6, barLick, B(6), 7, sessionTime, T/60,  ---> S2
+\********************
+\ Separate state for Bar Sipper off for choice trials because MED is stupid
+\************************
+S.S.13,
+S1,
+#Z7: ---> S2
+S2,
+1.5": OFF^barSipper ---> SX \generally, leave bar side sipper out for 1s (0.5s is motor time)
