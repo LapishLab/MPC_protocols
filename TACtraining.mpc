@@ -223,3 +223,17 @@ S1,
 #Z1: ---> S2
 S2,
 #R^barSipBeam: ADD B(10); SET R(B(10)) = T ---> S2 \count and timestamp Bar near sipper beam breaks
+
+\********************
+\Loop for on-screen displayed information
+\************************
+
+S.S.12,
+
+S1,
+
+#START: ---> S2
+
+S2,
+
+ 0.01": SHOW 1, trialCount, B(0), 2, engdTrials, N, 3, tacChoice, B(3), 4, barChoice, B(4), 5, tacLick, B(5), 6, barLick, B(6), 7, sessionTime, T/60,  ---> S2
