@@ -21,6 +21,9 @@
 \ the intertrial intervals were decreased slightly. This version
 \ takes 63.5 minutes to run.
 
+\FOR PI SYNC
+\ before 4/22/2026, 2CAP experiments have the syncing signal on for 3s just before either CS+ is \ initiated. After 4/22/2026, the syncing signal is not synced DIRECTLY with the CS+ itself.
+
 \ **************************** A/B ***************************
 \ A: Solid light CS+ on access side. Blinking light CS- on both sides.
 \ B: Blinking light CS+ on access side. Solid light CS- on both sides.
@@ -224,11 +227,11 @@ S3,
 
 \ Run the intertrial interval and shut down CS-
 S4,
-    Z#T: ON ^PiSync; SET W = 1 ---> S5
+    Z#T: SET W = 1 ---> S5
 
 \ Wait 3 seconds for prestimulus background, then run the correct CS+
 S5,
-    3": OFF ^PiSync; RANDD X = D; SHOW 2, TrialType, X; IF X = 1 [@True, @False]
+    3": RANDD X = D; SHOW 2, TrialType, X; IF X = 1 [@True, @False]
         @True: Z4 ---> S6
         @False: Z5 ---> S6
 
@@ -284,16 +287,16 @@ S2,
 \ ****************** Left Solid Light (4 sec) ******************
 S.S.5,
 S1,
-    #Z4: ON ^LeftStimLight; SET M(L) = 1; SET N(L) = T; ADD L ---> S2
+    #Z4: ON ^LeftStimLight, ^PiSync; SET M(L) = 1; SET N(L) = T; ADD L ---> S2
 S2,
-    4": OFF ^LeftStimLight; SET M(L) = 3; SET N(L) = T; ADD L ---> S1
+    4": OFF ^LeftStimLight, ^PiSync; SET M(L) = 3; SET N(L) = T; ADD L ---> S1
 
 \ ****************** Right Solid Light (4 sec) ******************
 S.S.6,
 S1,
-    #Z5: ON ^RightStimLight; SET M(L) = 2; SET N(L) = T; ADD L ---> S2
+    #Z5: ON ^RightStimLight, ^PiSync; SET M(L) = 2; SET N(L) = T; ADD L ---> S2
 S2,
-    4": OFF ^RightStimLight; SET M(L) = 4; SET N(L) = T; ADD L ---> S1
+    4": OFF ^RightStimLight, ^Pisync; SET M(L) = 4; SET N(L) = T; ADD L ---> S1
 
 
 \ ****************** Left Blinking Light (4 sec) ******************

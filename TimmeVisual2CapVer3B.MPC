@@ -21,6 +21,9 @@
 \ the intertrial intervals were decreased slightly. This version
 \ takes 63.5 minutes to run.
 
+\FOR PI SYNC
+\ before 4/22/2026, 2CAP experiments have the syncing signal on for 3s just before either CS+ is \ initiated. After 4/22/2026, the syncing signal is not synced DIRECTLY with the CS+ itself.
+
 \ **************************** A/B ***************************
 \ A: Solid light CS+ on access side. Blinking light CS- on both sides.
 \ B: Blinking light CS+ on access side. Solid light CS- on both sides.
@@ -225,11 +228,11 @@ S3,
 
 \ Run the intertrial interval and shut down CS-
 S4,
-    Z#T: ON ^PiSync; SET W = 1 ---> S5
+    Z#T: SET W = 1 ---> S5
 
 \ Wait 3 seconds for prestimulus background, then run the correct CS+
 S5,
-    3": OFF ^PiSync; RANDD X = D; SHOW 2, TrialType, X; IF X = 1 [@True, @False]
+    3": RANDD X = D; SHOW 2, TrialType, X; IF X = 1 [@True, @False]
         @True: Z6 ---> S6
         @False: Z7 ---> S6
 
@@ -300,42 +303,42 @@ S2,
 \ ****************** Left Blinking Light (4 sec) ******************
 S.S.7,
 S1,
-    #Z6: ON ^LeftStimLight; SET M(L) = 9; SET N(L) = T; ADD L ---> S2
+    #Z6: ON ^LeftStimLight, ^PiSync; SET M(L) = 9; SET N(L) = T; ADD L ---> S2
 S2,
-    0.25": OFF ^LeftStimLight ---> S3
+    0.25": OFF ^LeftStimLight, ^PiSync ---> S3
 S3,
-    0.75": ON ^LeftStimLight ---> S4
+    0.75": ON ^LeftStimLight, ^PiSync ---> S4
 S4,
-    0.25": OFF ^LeftStimLight ---> S5
+    0.25": OFF ^LeftStimLight, ^PiSync ---> S5
 S5,
-    0.75": ON ^LeftStimLight ---> S6
+    0.75": ON ^LeftStimLight, ^PiSync ---> S6
 S6,
-    0.25": OFF ^LeftStimLight ---> S7
+    0.25": OFF ^LeftStimLight, ^PiSync ---> S7
 S7,
-    0.75": ON ^LeftStimLight ---> S8
+    0.75": ON ^LeftStimLight, ^PiSync ---> S8
 S8,
-    0.25": OFF ^LeftStimLight ---> S9
+    0.25": OFF ^LeftStimLight, ^PiSync ---> S9
 S9,
     0.75": SET M(L) = 11; SET N(L) = T; ADD L ---> S1
 
 \ ****************** Right Blinking Light (4 sec) ******************
 S.S.8,
 S1,
-    #Z7: ON ^RightStimLight; SET M(L) = 10; SET N(L) = T; ADD L ---> S2
+    #Z7: ON ^RightStimLight, ^PiSync; SET M(L) = 10; SET N(L) = T; ADD L ---> S2
 S2,
-    0.25": OFF ^RightStimLight ---> S3
+    0.25": OFF ^RightStimLight, ^PiSync ---> S3
 S3,
-    0.75": ON ^RightStimLight ---> S4
+    0.75": ON ^RightStimLight, ^PiSync ---> S4
 S4,
-    0.25": OFF ^RightStimLight ---> S5
+    0.25": OFF ^RightStimLight, ^PiSync ---> S5
 S5,
-    0.75": ON ^RightStimLight ---> S6
+    0.75": ON ^RightStimLight, ^PiSync ---> S6
 S6,
-    0.25": OFF ^RightStimLight ---> S7
+    0.25": OFF ^RightStimLight, ^PiSync ---> S7
 S7,
-    0.75": ON ^RightStimLight ---> S8
+    0.75": ON ^RightStimLight, ^PiSync ---> S8
 S8,
-    0.25": OFF ^RightStimLight ---> S9
+    0.25": OFF ^RightStimLight, ^PiSync ---> S9
 S9,
     0.75": SET M(L) = 12; SET N(L) = T; ADD L ---> S1
 
