@@ -1,0 +1,84 @@
+\ ****************************************************************
+\ ***************** Sync signal for USV-only, no MED, recordings ****************
+\ ****************************************************************
+\
+\ This program runs a sync signal via the same math as the RAP_30_min program
+\ and nothing else
+
+
+\ **************************** Outputs ***************************
+^PiSync = 7                        \ The output number for the sync signal to the raspberry Pi
+
+
+
+\ **************************** Inputs ***************************
+\ no inputs
+
+\ *************************** Variables *************************
+\ H = Array for PiSync ON times
+\ I = Pi sync signal counter
+\ K = additive PiSync ON time counter in ms
+\ L = Array for PiSync OFF times
+\ T = Time in Seconds
+
+
+
+\ **************************** Z-Pulses *************************
+\ Z1: Starts the timer
+\ *********************** Preallocate Arrays ********************
+DIM E = 5000
+DIM F = 5000
+DIM J = 5
+DIM P = 5000
+DIM Q = 5000
+DIM R = 5000
+DIM S = 5000
+DIM U = 5000
+DIM V = 5000
+DIM H = 10000
+DIM L = 10000
+
+
+\ *********************** Run the Program ************************
+\ ****************************************************************
+
+
+\ ************************* Start Up *************************
+S.S.1,
+S1,
+    #START:Z1 ---> S2
+S2,
+    0.1": SHOW 1, Session Timer, T --->S2
+
+
+\ ***************************** Session Timer ****************************
+S.S.2,
+S1,
+    #Z1: SET T=0 --->S2
+S2,
+    .01": SET T=T+.05 ---> S2
+
+
+\ ************************* Shut Down *************************
+S.S.9,
+S1,
+    #Z1: ---> S2
+S2,
+    0.1": IF T > 1320 [@True, @False]
+        @True: ---> S3
+        @False:--->S2
+S3,
+    0.1": ---> STOPABORTFLUSH
+
+
+\ ****************** Sync signal increasing variable timer *******************
+
+S.S.6,
+S1,
+    #START: Set K = 0.1" --->S2
+S2,
+    0.001": ON^PiSync; SET H(I) = T; ADD I --->S3
+S3,
+    K#T: OFF^PiSync; SET L(I) = T; SET K = K+0.1"  ---> S4
+S4,
+    9.999": --->S2
