@@ -15,7 +15,7 @@
 
 \  OUTPUTS
 ^HLIGHT=7
-^Sync = 10
+^Sync = 8
 ^Pellet=3
 ^LLEVERINOUT=1
 ^RLEVERINOUT=2
