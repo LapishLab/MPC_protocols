@@ -78,7 +78,7 @@ S.S.1,
 S1,
     #START: ---> s2
 S2, 
-    60": ON ^RightSipper; ON ^LeftSipper; Z1 ---> S3
+    70": ON ^RightSipper; ON ^LeftSipper; Z1 ---> S3
 S3,
     1": SHOW 1, Left Licks, A, 2, Right Licks, B, 3, Times, T ---> S3
 
