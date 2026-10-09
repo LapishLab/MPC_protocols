@@ -2,8 +2,8 @@
 \ ***************** Restricted Access Protocol ****************
 \ ****************************************************************
 \
-\ This program triggers both bottles right at start to come out and 
-\ stay out for some encoded time
+\ This program triggers both bottles to come out one minute after 
+\ program start and stay out for some encoded time
 
 
 \ **************************** Outputs ***************************
