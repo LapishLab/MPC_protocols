@@ -215,3 +215,11 @@ S3,
     K#T: OFF^PiSync; SET L(I) = T; SET K = K+0.1"  ---> S4
 S4,
     9.999": --->S2
+
+
+\ ****************** Loop for on Screen Information ************************
+S.S.7,
+S1,
+    #Start: ---> s2
+S2,
+    0.1": SHOW1, Left Licks, A, 2, Right Licks, B, 3, Times, T ---> S2
