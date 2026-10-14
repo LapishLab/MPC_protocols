@@ -1,0 +1,130 @@
+\ ****************************************************************
+\ ***************** Restricted Access Protocol ****************
+\ ****************************************************************
+\
+\ This program acclimates the animal to the chamber by
+\ waiting for the animal to lick 15 times from both sides of the
+\ chamber.
+
+
+\ **************************** Outputs ***************************
+^LeftStimLight = 1                \ The output number for the left stimulus light
+^LeftSipper = 5                \ The output number for the left sipper when looking at the front of the chamber
+^PiSync = 7                        \ The output number for the sync signal to the raspberry Pi
+^AudioSync = 10                    \ output for audio start/sync signal
+
+
+
+\ **************************** Inputs ***************************
+\ The licks are recorded for the matching sippers. Note that on
+\ the Med Associates card, these inputs should be set to toggle.
+^LeftLick = 1
+^RightLick = 5
+
+\ *************************** Variables *************************
+\ A = Number of left licks.
+\ B = Time when audio playback started
+\ C = Record of whether the left sipper has been tripped enough
+\     times (0 = No, 1 = Yes).
+\ D = Record of whether the right sipper has been tripped enough
+\     times (0 = No, 1 = Yes).
+\ E = List of left lick times in seconds.
+\ F = List of right lick times in seconds.
+\ G = Total number of licks
+\ H = Array for PiSync ON times
+\ I = Pi sync signal counter
+\ J = List of Beam State Transition Counters
+\ K = PiSync ON time in ms
+\ L = Array for PiSync OFF times
+\ M = time for bottle out
+\ T = Time in Seconds
+
+
+
+\ **************************** Z-Pulses *************************
+\ Z1: Starts the timer
+\ *********************** Preallocate Arrays ********************
+DIM E = 5000
+DIM F = 5000
+DIM J = 5
+DIM P = 5000
+DIM Q = 5000
+DIM R = 5000
+DIM S = 5000
+DIM U = 5000
+DIM V = 5000
+DIM H = 10000
+DIM L = 10000
+DIM M = 1
+
+
+\ *********************** Run the Program ************************
+\ ****************************************************************
+
+
+\ ************************* Start Up *************************
+S.S.1,
+S1,
+    #START: Z1; ---> S2
+S2,
+    5": ON^AudioSync; Set B=T ---> S3
+S3,
+    1": OFF^AudioSync ---> S4
+S4,
+    59": ON ^LeftSipper; SET M(0) = T; ---> S1
+
+\ ***************************** Timer ****************************
+S.S.2,
+S1,
+    #Z1: SET T=0 --->S2
+S2,
+    .01": SET T=T+.01 ---> S2
+
+\ ****************** Left Sipper Recording ******************
+S.S.3,
+S1,
+    #Z1: ---> S2
+S2,
+    #R^LeftLick: ADD A; SET E(A) = T ---> S2
+
+\ ************************* Shut Down *************************
+S.S.9,
+S1,
+    #Z1: ---> S2
+S2,
+    0.1": IF T > 2465 [@True, @False]
+        @True: ---> S3
+        @False:--->S2
+S3,
+    0.1": ---> STOPABORTFLUSH
+
+\ ****************** Sync signal every lick *******************
+
+\S.S.5,
+\S1,
+    \#START: --->S2
+\S2,
+    \#R^LeftLick: ON^PiSync; ADD I; SET H(I) = T --->S3
+    \#R^RightLick: ON^PiSync; ADD I; SET H(I) = T --->S3
+\S3,
+    \0.01": ---> S2
+
+\ ****************** Sync signal increasing variable timer *******************
+
+S.S.6,
+S1,
+    #START: Set K = 0.1" --->S2
+S2,
+    0.001": ON^PiSync; SET H(I) = T; ADD I --->S3
+S3,
+    K#T: OFF^PiSync; SET L(I) = T; SET K = K+0.1"  ---> S4
+S4,
+    9.999": --->S2
+
+
+\ ****************** Loop for on Screen Information ************************
+S.S.7,
+S1,
+    #Start: ---> s2
+S2,
+    0.1": SHOW1, Left Licks, A, 2, Audio On Time, B, 3, Session Time, T ---> S2
