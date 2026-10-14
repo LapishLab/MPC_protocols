@@ -187,7 +187,7 @@ S.S.9,
 S1,
     #Z1: ---> S2
 S2,
-    0.001": IF T >= 2400 [@True, @False]
+    0.1": IF T > 2465 [@True, @False]
         @True: ---> S3
         @False:--->S2
 S3,
