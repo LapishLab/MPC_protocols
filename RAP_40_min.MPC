@@ -112,7 +112,7 @@ S2,
 \ ******************** Beam 1 Break Recording ********************
 S.S.21,
 S1,
-    #Z1: SET P(0) = -1; SET P(1) = -1; SET J(0) = 1 ---> S2
+    #START: SET P(0) = -1; SET P(1) = -1; SET J(0) = 1 ---> S2
 S2,
     #R^IR_1: IF T <= (P(J(0)) + 0.075) [@True, @False]
         @True: SET P(J(0)) = T ---> S3
