@@ -246,7 +246,7 @@ S.S.13,
 S1,
 #Z7: ---> S2
 S2,
-1.5": OFF^barSipper ---> SX \generally, leave bar side sipper out for 1s (0.5s is motor time)
+1.5": OFF^barSipper ---> S1 \generally, leave bar side sipper out for 1s (0.5s is motor time)
 \********************
 \ Engaged trial counter for forced trials
 \************************
