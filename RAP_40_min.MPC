@@ -92,7 +92,7 @@ S.S.2,
 S1,
     #Z1: SET T=0 --->S2
 S2,
-    .05": SET T=T+.05 ---> S2
+    .01": SET T=T+.01 ---> S2
 
 \ ****************** Left Sipper Recording ******************
 S.S.3,
@@ -191,7 +191,7 @@ S2,
         @True: ---> S3
         @False:--->S2
 S3,
-    0.001": ---> STOPABORTFLUSH
+    0.1": ---> STOPABORTFLUSH
 
 \ ****************** Sync signal every lick *******************
 
