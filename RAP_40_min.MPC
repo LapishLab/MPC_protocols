@@ -2,8 +2,9 @@
 \ ***************** Restricted Access Protocol ****************
 \ ****************************************************************
 \
-\ This program triggers both bottles to come out one minute after 
-\ program start and stay out for some encoded time
+\ This program acclimates the animal to the chamber by
+\ waiting for the animal to lick 15 times from both sides of the
+\ chamber.
 
 
 \ **************************** Outputs ***************************
@@ -35,6 +36,10 @@
 \ *************************** Variables *************************
 \ A = Number of left licks.
 \ B = Number of right licks.
+\ C = Record of whether the left sipper has been tripped enough
+\     times (0 = No, 1 = Yes).
+\ D = Record of whether the right sipper has been tripped enough
+\     times (0 = No, 1 = Yes).
 \ E = List of left lick times in seconds.
 \ F = List of right lick times in seconds.
 \ G = Total number of licks
