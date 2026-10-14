@@ -48,6 +48,7 @@
 \ J = List of Beam State Transition Counters
 \ K = PiSync ON time in ms
 \ L = Array for PiSync OFF times
+\ M = time for bottle out
 \ P = List of Beam 1 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
 \ Q = List of Beam 2 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
 \ R = List of Beam 3 Break Times (-1, -1, followed by alternating Break and Unbreak transitions starting with an break transition)
@@ -72,6 +73,7 @@ DIM U = 5000
 DIM V = 5000
 DIM H = 10000
 DIM L = 10000
+DIM M = 1
 
 
 \ *********************** Run the Program ************************
@@ -81,11 +83,9 @@ DIM L = 10000
 \ ************************* Start Up *************************
 S.S.1,
 S1,
-    #START: ---> s2
-S2, 
-    70": ON ^RightSipper; ON ^LeftSipper; Z1 ---> S3
-S3,
-    1": SHOW 1, Left Licks, A, 2, Right Licks, B, 3, Times, T ---> S3
+    #START: Z1; ---> s2
+s2,
+    65": ON ^RightSipper; ON ^LeftSipper; SET M(0) = T; ---> S1
 
 \ ***************************** Timer ****************************
 S.S.2,
